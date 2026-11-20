@@ -2325,8 +2325,26 @@ body {
   width: 100%;
 }
 
-/* ══════════════ RESPONSIVE ══════════════ */
+/* ══════════════ RESPONSIVE — ALL DEVICES ══════════════ */
+
+/* Global Mobile Viewport Guards */
+html, body {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+.section {
+  width: 100%;
+  max-width: 100vw;
+  box-sizing: border-box;
+}
+
+/* ── TABLETS & SMALL LAPTOPS (≤ 1024px) ── */
 @media (max-width: 1024px) {
+  .dashboard-grid {
+    grid-template-columns: repeat(12, 1fr);
+  }
   .panel-chart { grid-column: span 12; }
   .panel-weather { grid-column: span 6; }
   .panel-status { grid-column: span 6; }
@@ -2335,45 +2353,519 @@ body {
   .sim-layout { grid-template-columns: 1fr; }
 }
 
+/* ── MOBILE PHONES & PORTRAIT TABLETS (≤ 768px) ── */
 @media (max-width: 768px) {
+  /* 1. Navbar */
   #navbar {
-    padding: 0 1.2rem;
+    height: 64px;
+    padding: 0 1rem;
+  }
+  .nav-logo {
+    gap: 0.35rem;
+  }
+  .logo-text {
+    font-size: 1.05rem;
+    letter-spacing: 1px;
+  }
+  .logo-year {
+    font-size: 0.68rem;
+    padding: 0.15rem 0.35rem;
+  }
+  .nav-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    font-size: 1.2rem;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-glass);
+    border-radius: var(--radius-sm);
+    color: var(--accent-cyan);
+    cursor: pointer;
   }
   .nav-links {
     display: none;
     position: absolute;
-    top: 72px;
+    top: 64px;
     left: 0;
     right: 0;
-    background: rgba(7, 13, 23, 0.98);
+    background: rgba(7, 13, 23, 0.97);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     flex-direction: column;
-    padding: 1.5rem;
-    border-bottom: 1px solid var(--border-glass);
-    gap: 0.8rem;
+    padding: 1.2rem 1.5rem;
+    border-bottom: 1px solid var(--accent-cyan);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.7);
+    gap: 0.7rem;
+    z-index: 1000;
   }
   .nav-links.open {
     display: flex;
   }
-  .nav-toggle {
-    display: block;
+  .nav-link {
+    font-size: 0.82rem;
+    padding: 0.5rem 0;
   }
+
+  /* 2. Section Generic */
   .section {
-    padding: 4.5rem 1.2rem 3rem;
+    padding: 4.5rem 1rem 2.8rem;
   }
+  .section-header {
+    margin-bottom: 2rem;
+  }
+  .section-tag {
+    font-size: 0.7rem;
+    letter-spacing: 2px;
+  }
+  .section-title {
+    font-size: clamp(1.4rem, 5.5vw, 1.85rem);
+    line-height: 1.3;
+  }
+  .section-desc {
+    font-size: 0.85rem;
+  }
+
+  /* 3. Hero Section */
+  .section-home {
+    min-height: auto;
+    padding: 5.5rem 1rem 3rem;
+  }
+  .hero-badge {
+    font-size: 0.65rem;
+    letter-spacing: 1px;
+    padding: 0.35rem 0.8rem;
+    margin-bottom: 1.2rem;
+    word-break: break-word;
+    max-width: 100%;
+  }
+  .hero-title {
+    font-size: clamp(1.9rem, 8.5vw, 3.2rem);
+    letter-spacing: 1px;
+    margin-bottom: 0.8rem;
+  }
+  .title-year {
+    font-size: 0.48em;
+    letter-spacing: 4px;
+    margin-top: 0.2rem;
+  }
+  .hero-subtitle {
+    font-size: clamp(0.78rem, 3.2vw, 0.95rem);
+    letter-spacing: 1.5px;
+    margin-bottom: 1.2rem;
+  }
+  .hero-quote {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 2rem;
+  }
+  .hero-cta {
+    flex-direction: column;
+    width: 100%;
+    max-width: 320px;
+    margin: 0 auto 2.5rem;
+    gap: 0.75rem;
+  }
+  .btn-primary, .btn-secondary {
+    width: 100%;
+    justify-content: center;
+    padding: 0.8rem 1.4rem;
+    font-size: 0.85rem;
+  }
+  .hero-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+  .stat-card {
+    padding: 1rem 0.6rem;
+  }
+  .stat-number {
+    font-size: 1.6rem;
+  }
+  .stat-label {
+    font-size: 0.72rem;
+  }
+
+  /* 4. 3D City Map */
+  .city3d-container {
+    height: 400px;
+    border-radius: var(--radius-sm);
+  }
+  .city3d-controls {
+    gap: 0.5rem;
+    margin-bottom: 0.8rem;
+  }
+  .ctrl-group {
+    display: flex;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    gap: 0.45rem;
+    padding-bottom: 6px;
+    width: 100%;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .ctrl-group::-webkit-scrollbar {
+    display: none;
+  }
+  .ctrl-label {
+    display: none;
+  }
+  .ctrl-btn {
+    flex-shrink: 0;
+    white-space: nowrap;
+    font-size: 0.72rem;
+    padding: 0.42rem 0.75rem;
+    border-radius: 6px;
+  }
+  .city-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem 0.6rem;
+    font-size: 0.65rem;
+    padding: 0.35rem 0.6rem;
+    bottom: auto;
+    top: 0.5rem;
+    left: 0.5rem;
+    max-width: 85%;
+  }
+  .city3d-overlay {
+    top: auto;
+    bottom: 0.4rem;
+    left: 0.4rem;
+    right: 0.4rem;
+    width: auto;
+    max-width: none;
+    padding: 0.85rem;
+    max-height: 55%;
+    overflow-y: auto;
+    border-radius: 10px;
+    z-index: 20;
+  }
+  .overlay-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.2rem;
+  }
+  .city3d-overlay h3 {
+    font-size: 0.95rem;
+    margin-bottom: 0.2rem;
+  }
+  .overlay-badge {
+    font-size: 0.68rem;
+    padding: 0.15rem 0.5rem;
+    margin-bottom: 0.4rem;
+  }
+  .city3d-overlay p {
+    font-size: 0.76rem;
+    line-height: 1.4;
+    margin-bottom: 0.5rem;
+  }
+  .overlay-stats {
+    gap: 0.35rem;
+    padding: 0.45rem;
+    font-size: 0.7rem;
+    margin-bottom: 0.6rem;
+  }
+  .overlay-detail-btn {
+    padding: 0.55rem 0.75rem;
+    font-size: 0.76rem;
+  }
+  .city-pin-label {
+    font-size: 0.65rem;
+    padding: 0.22rem 0.5rem;
+    gap: 0.3rem;
+  }
+  .city-pin-label .pin-dot {
+    width: 6px;
+    height: 6px;
+  }
+
+  /* 5. 5 Main Systems */
+  .systems-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  .system-card {
+    padding: 1.4rem;
+  }
+  .system-card-wide {
+    grid-column: span 1;
+  }
+  .system-stats {
+    gap: 1rem;
+  }
+  .sys-val {
+    font-size: 1.4rem;
+  }
+
+  /* 6. Water Flow */
+  .flow-diagram {
+    padding: 1.4rem 0.8rem;
+    border-radius: var(--radius-md);
+  }
+  .flow-sources, .flow-destinations {
+    flex-direction: column;
+    gap: 0.6rem;
+    margin: 1rem 0;
+    width: 100%;
+  }
+  .source-item, .dest-item {
+    width: 100%;
+    flex-direction: row;
+    justify-content: flex-start;
+    text-align: left;
+    padding: 0.75rem 1rem;
+    font-size: 0.82rem;
+    gap: 0.8rem;
+  }
+  .flow-pipeline {
+    gap: 0.5rem;
+    padding: 1rem 0;
+    justify-content: flex-start;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+  }
+  .flow-step {
+    min-width: 125px;
+    flex-shrink: 0;
+    padding: 0.9rem 0.7rem;
+  }
+  .flow-arrow {
+    font-size: 1.1rem;
+    flex-shrink: 0;
+  }
+
+  /* 7. AI Control Center */
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  .panel-gauges, .panel-chart, .panel-weather, .panel-status, .panel-ai-insight, .panel-pie {
+    grid-column: span 12;
+    padding: 1.2rem;
+  }
+  .gauges-row {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+  .gauge-wrap canvas {
+    max-width: 110px;
+    max-height: 110px;
+  }
+  .gauge-val {
+    font-size: 1.2rem;
+  }
+  .gauge-label {
+    font-size: 0.75rem;
+  }
+  .weather-now {
+    gap: 1rem;
+  }
+  .weather-icon-big {
+    font-size: 2.4rem;
+  }
+  .weather-temp {
+    font-size: 1.6rem;
+  }
+
+  /* 8. Simulation */
+  .sim-layout {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  .sim-controls, .sim-output {
+    padding: 1.2rem;
+  }
+  .sim-scenarios {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  .scenario-btn {
+    font-size: 0.8rem;
+    padding: 0.65rem 0.85rem;
+  }
+  .slider-item {
+    font-size: 0.8rem;
+  }
+
+  /* 9. Impact Section */
+  .impact-compare {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  .compare-card {
+    padding: 1.2rem;
+  }
+  .impact-toggle {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .impact-btn {
+    font-size: 0.78rem;
+    padding: 0.6rem 1rem;
+  }
+
+  /* 10. Technology */
+  .tech-grid {
+    grid-template-columns: 1fr;
+    gap: 0.8rem;
+  }
+  .tech-card {
+    padding: 1.2rem;
+  }
+
+  /* 11. Future Roadmap */
   .timeline-line {
-    left: 20px;
+    left: 14px;
   }
   .timeline-item {
     width: 100%;
-    padding-left: 50px !important;
+    padding-left: 38px !important;
     padding-right: 0 !important;
     text-align: left !important;
   }
   .timeline-item .timeline-dot {
-    left: 11px !important;
+    left: 6px !important;
     right: auto !important;
   }
-  .panel-weather, .panel-status, .panel-ai-insight, .panel-pie {
-    grid-column: span 12;
+  .timeline-content {
+    padding: 1.1rem;
+  }
+
+  /* 12. About Section */
+  .about-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  .about-card {
+    padding: 1.2rem;
+  }
+
+  /* 13. Detail Drawer Modal (Full Screen Mobile Bottom Sheet) */
+  .detail-modal {
+    z-index: 2200;
+  }
+  .detail-panel {
+    width: 100vw;
+    max-width: 100vw;
+    height: 100vh;
+    padding: 1.2rem 1rem;
+    border-left: none;
+    border-radius: 0;
+  }
+  .detail-close {
+    width: 32px;
+    height: 32px;
+    font-size: 0.9rem;
+  }
+  .detail-icon {
+    font-size: 2rem;
+  }
+  .detail-title {
+    font-size: 1.25rem;
+  }
+  .detail-tagline {
+    font-size: 0.82rem;
+  }
+  .water-path-section {
+    padding: 0.75rem;
+    margin: 0.9rem 0;
+  }
+  .water-path-diagram {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    overflow-x: auto;
+    padding-bottom: 0.6rem;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+  }
+  .path-node {
+    min-width: 70px;
+    flex-shrink: 0;
+    padding: 0.4rem 0.3rem;
+    border-radius: 6px;
+  }
+  .path-node-icon {
+    font-size: 1.15rem;
+  }
+  .path-node-label {
+    font-size: 0.65rem;
+    line-height: 1.25;
+  }
+  .path-arrow {
+    flex-shrink: 0;
+    font-size: 0.85rem;
+    width: 16px;
+  }
+  .detail-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+  .detail-stat-item {
+    padding: 0.6rem;
+  }
+  .detail-stat-value {
+    font-size: 0.95rem;
+  }
+  .hiw-step {
+    padding: 0.75rem;
+    gap: 0.6rem;
+  }
+  .hiw-step-num {
+    font-size: 0.82rem;
+  }
+  .hiw-step-title {
+    font-size: 0.82rem;
+  }
+  .hiw-step-desc {
+    font-size: 0.75rem;
+    line-height: 1.45;
+  }
+  .detail-funfact {
+    font-size: 0.75rem;
+    padding: 0.75rem;
+  }
+}
+
+/* ── EXTRA SMALL MOBILE PHONES (≤ 480px) ── */
+@media (max-width: 480px) {
+  .section {
+    padding: 4rem 0.8rem 2.2rem;
+  }
+  .city3d-container {
+    height: 330px;
+  }
+  .hero-title {
+    font-size: clamp(1.7rem, 9vw, 2.4rem);
+  }
+  .title-year {
+    letter-spacing: 2.5px;
+  }
+  .hero-subtitle {
+    font-size: 0.75rem;
+    letter-spacing: 1px;
+  }
+  .hero-quote {
+    font-size: 0.88rem;
+  }
+  .hero-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+  .stat-card {
+    padding: 0.8rem 0.4rem;
+  }
+  .stat-number {
+    font-size: 1.4rem;
+  }
+  .stat-label {
+    font-size: 0.68rem;
+  }
+  .gauges-row {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
   }
 }

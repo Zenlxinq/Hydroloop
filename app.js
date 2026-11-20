@@ -596,38 +596,58 @@ function init3DCity() {
     updateCam();
   }, { passive: false });
 
-  // Touch
+  // Touch controls optimized for mobile
   let td0 = 0;
+  let touchStartPos = { x: 0, y: 0 };
+  let touchMode = 'none'; // 'rotate', 'scroll', 'pinch'
+
   canvas.addEventListener('touchstart', e => {
     if (e.touches.length === 1) {
       dragging = true;
       totalDragDist = 0;
+      touchMode = 'none';
+      touchStartPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
       prev = { x: e.touches[0].clientX, y: e.touches[0].clientY };
     } else if (e.touches.length === 2) {
+      touchMode = 'pinch';
       td0 = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
     }
-  });
+  }, { passive: true });
 
   canvas.addEventListener('touchmove', e => {
     if (e.touches.length === 1 && dragging) {
       const dx = e.touches[0].clientX - prev.x;
       const dy = e.touches[0].clientY - prev.y;
       totalDragDist += Math.abs(dx) + Math.abs(dy);
-      spherical.theta -= dx * 0.008;
-      spherical.phi -= dy * 0.008;
-      isCamTransitioning = false;
-      updateCam();
+
+      // Determine gesture direction on first significant movement
+      if (touchMode === 'none' && totalDragDist > 8) {
+        touchMode = Math.abs(dx) > Math.abs(dy) ? 'rotate' : 'scroll';
+      }
+
+      if (touchMode === 'rotate') {
+        if (e.cancelable) e.preventDefault();
+        spherical.theta -= dx * 0.008;
+        spherical.phi -= dy * 0.008;
+        isCamTransitioning = false;
+        updateCam();
+      }
+      // When touchMode === 'scroll', page scrolls naturally without interruption!
       prev = { x: e.touches[0].clientX, y: e.touches[0].clientY };
     } else if (e.touches.length === 2) {
+      if (e.cancelable) e.preventDefault();
       const d = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-      spherical.r += (td0 - d) * 0.1;
+      spherical.r += (td0 - d) * 0.12;
       isCamTransitioning = false;
       updateCam();
       td0 = d;
     }
-  });
+  }, { passive: false });
 
-  canvas.addEventListener('touchend', () => { dragging = false; });
+  canvas.addEventListener('touchend', () => {
+    dragging = false;
+    touchMode = 'none';
+  });
 
   /* ── Selection & Overlay Handler ── */
   const overlay = document.getElementById('cityOverlay');
