@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HYDROLOOP 2040 — Udon Thani Smart Water City</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="navbar">
+  <div class="nav-logo">
+    <span class="logo-drop">💧</span>
+    <span class="logo-text">HYDROLOOP</span>
+    <span class="logo-year">2040</span>
+  </div>
+  <ul class="nav-links">
+    <li><a href="#home"        class="nav-link active" data-section="home">HOME</a></li>
+    <li><a href="#city3d"      class="nav-link" data-section="city3d">3D CITY</a></li>
+    <li><a href="#water-system" class="nav-link" data-section="water-system">SYSTEMS</a></li>
+    <li><a href="#water-flow"  class="nav-link" data-section="water-flow">FLOW</a></li>
+    <li><a href="#ai-control"  class="nav-link" data-section="ai-control">AI CONTROL</a></li>
+    <li><a href="#simulation"  class="nav-link" data-section="simulation">SIMULATION</a></li>
+    <li><a href="#impact"      class="nav-link" data-section="impact">IMPACT</a></li>
+    <li><a href="#technology"  class="nav-link" data-section="technology">TECH</a></li>
+    <li><a href="#future"      class="nav-link" data-section="future">FUTURE</a></li>
+    <li><a href="#about"       class="nav-link" data-section="about">ABOUT</a></li>
+  </ul>
+  <button class="nav-toggle" id="navToggle">☰</button>
+</nav>
+
+<!-- 1. HOME -->
+<section id="home" class="section section-home">
+  <div class="hero-bg"><canvas id="heroCanvas"></canvas></div>
+  <div class="hero-content">
+    <div class="hero-badge">AI-POWERED CIRCULAR WATER MANAGEMENT · UDON THANI</div>
+    <h1 class="hero-title">
+      <span class="title-hydro">HYDRO</span><span class="title-loop">LOOP</span>
+      <span class="title-year">2040</span>
+    </h1>
+    <p class="hero-subtitle">THE INTELLIGENT WATER CYCLE OF TOMORROW</p>
+    <p class="hero-quote">"เปลี่ยนทุกหยดน้ำที่เคยสูญเปล่า<br/>ให้กลายเป็นพลังขับเคลื่อนเมืองแห่งอนาคต"</p>
+    <div class="hero-cta">
+      <a href="#city3d" class="btn-primary">🏙️ ดูเมืองอุดรธานี 3D</a>
+      <a href="#ai-control" class="btn-secondary">🤖 AI Control Center</a>
+    </div>
+    <div class="hero-stats">
+      <div class="stat-card"><div class="stat-num" data-target="85">0</div><div class="stat-label">% นำน้ำกลับมาใช้</div></div>
+      <div class="stat-card"><div class="stat-num" data-target="12000" data-suffix="L">0</div><div class="stat-label">ลิตร/วัน</div></div>
+      <div class="stat-card"><div class="stat-num" data-target="5">0</div><div class="stat-label">ระบบหลัก</div></div>
+      <div class="stat-card"><div class="stat-num" data-target="60">0</div><div class="stat-label">% ลดน้ำประปา</div></div>
+    </div>
+  </div>
+  <div class="hero-scroll-hint"><div class="scroll-arrow">▼</div><span>SCROLL</span></div>
+</section>
+
+<!-- 2. 3D CITY — UDON THANI -->
+<section id="city3d" class="section">
+  <div class="section-header">
+    <div class="section-tag">3D CITY MAP</div>
+    <h2 class="section-title">🏙️ อุดรธานี — HYDROLOOP CITY</h2>
+    <p class="section-desc">แผนผังจังหวัดอุดรธานี 3 มิติ · คลิกอาคารเพื่อดูระบบจัดการน้ำ</p>
+  </div>
+  <div class="city3d-wrapper">
+    <div class="city3d-controls">
+      <button class="ctrl-btn active" id="toggleBuildings">🏢 อาคาร</button>
+      <button class="ctrl-btn active" id="toggleWater">💧 ท่อน้ำ</button>
+      <button class="ctrl-btn active" id="toggleSensors">📡 เซนเซอร์</button>
+      <button class="ctrl-btn active" id="toggleGreen">🌿 พื้นที่เขียว</button>
+      <button class="ctrl-btn" id="resetCamera">🔄 Reset</button>
+    </div>
+    <div class="city3d-container">
+      <canvas id="cityCanvas"></canvas>
+      <div class="city-legend">
+        <div class="legend-item"><span class="leg-dot" style="background:#00d4ff"></span> HYDROLOOP System</div>
+        <div class="legend-item"><span class="leg-dot" style="background:#10b981"></span> สวนหนองประจักษ์</div>
+        <div class="legend-item"><span class="leg-dot" style="background:#3b82f6"></span> แหล่งน้ำ</div>
+        <div class="legend-item"><span class="leg-dot" style="background:#f59e0b"></span> จุดสำคัญ</div>
+      </div>
+      <div class="city3d-overlay" id="cityOverlay" style="display:none">
+        <button class="overlay-close" id="overlayClose">✕</button>
+        <div class="overlay-icon" id="overlayIcon"></div>
+        <h3 id="overlayTitle"></h3>
+        <p id="overlayDesc"></p>
+        <div class="overlay-stats" id="overlayStats"></div>
+      </div>
+    </div>
+    <div class="city3d-hint">🖱️ ลาก = หมุน · เลื่อน = ซูม · คลิก = รายละเอียด</div>
+  </div>
+</section>
+
+<!-- 3. WATER SYSTEM -->
+<section id="water-system" class="section section-dark">
+  <div class="section-header">
+    <div class="section-tag">SECTION 03</div>
+    <h2 class="section-title">⚙️ 5 ระบบหลัก HYDROLOOP</h2>
+    <p class="section-desc">ระบบจัดการน้ำครบวงจร — เชื่อมโยงทุกแหล่งน้ำในเมือง</p>
+  </div>
+  <div class="systems-grid">
+
+    <div class="system-card">
+      <div class="system-icon-wrap" style="--clr:#00d4ff"><div class="system-icon">❄️</div></div>
+      <div class="system-badge" style="background:#00d4ff22;color:#00d4ff">AIR2ROOT</div>
+      <h3>น้ำควบแน่นจากแอร์</h3>
+      <p>รวบรวมน้ำจากระบบปรับอากาศทุกอาคาร กรองและส่งเข้าระบบหมุนเวียน</p>
+      <div class="system-stats">
+        <div class="sys-stat"><span class="sys-val">340</span><span class="sys-unit">L/วัน</span></div>
+        <div class="sys-stat"><span class="sys-val">24/7</span><span class="sys-unit">hrs</span></div>
+      </div>
+      <div class="system-status online">● ONLINE</div>
+    </div>
+
+    <div class="system-card">
+      <div class="system-icon-wrap" style="--clr:#4dabf7"><div class="system-icon">🌧️</div></div>
+      <div class="system-badge" style="background:#4dabf722;color:#4dabf7">RAIN BANK</div>
+      <h3>เก็บน้ำฝน</h3>
+      <p>รวบรวมน้ำฝนจากหลังคา กรอง 3 ชั้น กักเก็บในถังใต้ดิน</p>
+      <div class="system-stats">
+        <div class="sys-stat"><span class="sys-val">8,500</span><span class="sys-unit">L ความจุ</span></div>
+        <div class="sys-stat"><span class="sys-val">72</span><span class="sys-unit">% ปัจจุบัน</span></div>
+      </div>
+      <div class="system-status online">● ONLINE</div>
+    </div>
+
+    <div class="system-card">
+      <div class="system-icon-wrap" style="--clr:#51cf66"><div class="system-icon">📡</div></div>
+      <div class="system-badge" style="background:#51cf6622;color:#51cf66">AQUA-GUARD</div>
+      <h3>ตรวจวัด IoT</h3>
+      <p>เซนเซอร์ 48 จุด ตรวจค่า pH ความขุ่น ระดับน้ำ และความชื้นดินแบบเรียลไทม์</p>
+      <div class="system-stats">
+        <div class="sys-stat"><span class="sys-val">48</span><span class="sys-unit">nodes</span></div>
+        <div class="sys-stat"><span class="sys-val">30</span><span class="sys-unit">sec refresh</span></div>
+      </div>
+      <div class="system-status online">● ONLINE</div>
+    </div>
+
+    <div class="system-card">
+      <div class="system-icon-wrap" style="--clr:#94d82d"><div class="system-icon">🌿</div></div>
+      <div class="system-badge" style="background:#94d82d22;color:#94d82d">SPONGE CITY</div>
+      <h3>เมืองซึมซับน้ำ</h3>
+      <p>พื้นซึมน้ำ สวนรับน้ำ และบ่อหน่วงน้ำ ลดน้ำท่วมขัง 70%</p>
+      <div class="system-stats">
+        <div class="sys-stat"><span class="sys-val">2,400</span><span class="sys-unit">m²</span></div>
+        <div class="sys-stat"><span class="sys-val">70</span><span class="sys-unit">% ลดท่วม</span></div>
+      </div>
+      <div class="system-status online">● ONLINE</div>
+    </div>
+
+    <div class="system-card system-card-wide">
+      <div class="system-icon-wrap" style="--clr:#cc5de8"><div class="system-icon">🧠</div></div>
+      <div class="system-badge" style="background:#cc5de822;color:#cc5de8">ECO-BRAIN & AQUA-PREDICT</div>
+      <h3>AI วิเคราะห์และวางแผน</h3>
+      <p>รวมข้อมูลทุกระบบ วิเคราะห์ด้วย AI คาดการณ์ปริมาณน้ำล่วงหน้า 72 ชั่วโมง จัดสรรน้ำอัตโนมัติ</p>
+      <div class="system-stats">
+        <div class="sys-stat"><span class="sys-val">94</span><span class="sys-unit">% แม่นยำ</span></div>
+        <div class="sys-stat"><span class="sys-val">72</span><span class="sys-unit">hrs พยากรณ์</span></div>
+        <div class="sys-stat"><span class="sys-val">48</span><span class="sys-unit">data streams</span></div>
+      </div>
+      <div class="system-status online">● ONLINE — Processing</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- 4. WATER FLOW -->
+<section id="water-flow" class="section">
+  <div class="section-header">
+    <div class="section-tag">SECTION 04</div>
+    <h2 class="section-title">🔄 วงจรน้ำ HYDROLOOP</h2>
+    <p class="section-desc">COLLECT → FILTER → STORE → MONITOR → PREDICT → REUSE</p>
+  </div>
+  <div class="flow-diagram">
+    <div class="flow-sources">
+      <div class="source-item"><div class="source-icon">❄️</div><span>น้ำควบแน่นแอร์</span></div>
+      <div class="source-item"><div class="source-icon">🌧️</div><span>น้ำฝน</span></div>
+      <div class="source-item"><div class="source-icon">🌱</div><span>น้ำจากสวนรับน้ำ</span></div>
+    </div>
+    <div class="flow-pipeline">
+      <div class="flow-step"><div class="flow-step-num">01</div><div class="flow-step-icon">🪣</div><div class="flow-step-name">COLLECT</div><div class="flow-water-bar"><div class="flow-bar-fill" style="width:95%"></div></div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="flow-step-num">02</div><div class="flow-step-icon">🔬</div><div class="flow-step-name">FILTER</div><div class="flow-water-bar"><div class="flow-bar-fill" style="width:88%"></div></div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="flow-step-num">03</div><div class="flow-step-icon">🗄️</div><div class="flow-step-name">STORE</div><div class="flow-water-bar"><div class="flow-bar-fill" style="width:72%"></div></div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="flow-step-num">04</div><div class="flow-step-icon">📡</div><div class="flow-step-name">MONITOR</div><div class="flow-water-bar"><div class="flow-bar-fill" style="width:100%"></div></div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="flow-step-num">05</div><div class="flow-step-icon">🧠</div><div class="flow-step-name">PREDICT</div><div class="flow-water-bar"><div class="flow-bar-fill" style="width:94%"></div></div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="flow-step-num">06</div><div class="flow-step-icon">♻️</div><div class="flow-step-name">REUSE</div><div class="flow-water-bar"><div class="flow-bar-fill" style="width:85%"></div></div></div>
+    </div>
+    <div class="flow-destinations">
+      <div class="dest-item"><div class="dest-icon">🌳</div><span>รดน้ำสวนสาธารณะ</span></div>
+      <div class="dest-item"><div class="dest-icon">🚿</div><span>ทำความสะอาด</span></div>
+      <div class="dest-item"><div class="dest-icon">🔥</div><span>ระบบดับเพลิง</span></div>
+    </div>
+    <div class="flow-animation-track">
+      <div class="water-drop flow-drop" style="animation-delay:0s">💧</div>
+      <div class="water-drop flow-drop" style="animation-delay:0.8s">💧</div>
+      <div class="water-drop flow-drop" style="animation-delay:1.6s">💧</div>
+      <div class="water-drop flow-drop" style="animation-delay:2.4s">💧</div>
+    </div>
+  </div>
+</section>
+
+<!-- 5. AI CONTROL CENTER -->
+<section id="ai-control" class="section section-dark">
+  <div class="section-header">
+    <div class="section-tag">SECTION 05</div>
+    <h2 class="section-title">🤖 AI CONTROL CENTER</h2>
+    <p class="section-desc">ECO-BRAIN Dashboard · ข้อมูลเรียลไทม์ทุกระบบ</p>
+  </div>
+  <div class="dashboard-grid">
+
+    <div class="dash-panel panel-gauges">
+      <h4 class="panel-title">📊 Sensor Data — เรียลไทม์</h4>
+      <div class="gauges-row">
+        <div class="gauge-wrap"><canvas id="gaugeWater" width="140" height="140"></canvas><div class="gauge-label">น้ำสำรอง</div><div class="gauge-val">72%</div></div>
+        <div class="gauge-wrap"><canvas id="gaugePH" width="140" height="140"></canvas><div class="gauge-label">pH</div><div class="gauge-val">7.2</div></div>
+        <div class="gauge-wrap"><canvas id="gaugeTurbidity" width="140" height="140"></canvas><div class="gauge-label">ความขุ่น</div><div class="gauge-val">3 NTU</div></div>
+        <div class="gauge-wrap"><canvas id="gaugeSoil" width="140" height="140"></canvas><div class="gauge-label">ความชื้นดิน</div><div class="gauge-val">58%</div></div>
+      </div>
+    </div>
+
+    <div class="dash-panel panel-chart">
+      <h4 class="panel-title">📈 ปริมาณน้ำที่รวบรวม (7 วัน)</h4>
+      <canvas id="collectionChart" height="180"></canvas>
+    </div>
+
+    <div class="dash-panel panel-weather">
+      <h4 class="panel-title">🌦️ สภาพอากาศอุดรธานี</h4>
+      <div class="weather-now">
+        <div class="weather-icon-big">⛅</div>
+        <div class="weather-info">
+          <div class="weather-temp">28°C</div>
+          <div class="weather-humid">ความชื้น 72%</div>
+          <div class="weather-desc">มีเมฆบางส่วน</div>
+        </div>
+      </div>
+      <div class="forecast-row">
+        <div class="forecast-day"><div>จ</div><div>🌧️</div><div class="rain-pct">82%</div></div>
+        <div class="forecast-day"><div>อ</div><div>🌦️</div><div class="rain-pct">45%</div></div>
+        <div class="forecast-day"><div>พ</div><div>☀️</div><div class="rain-pct">10%</div></div>
+        <div class="forecast-day"><div>พฤ</div><div>⛅</div><div class="rain-pct">25%</div></div>
+        <div class="forecast-day"><div>ศ</div><div>🌧️</div><div class="rain-pct">75%</div></div>
+      </div>
+    </div>
+
+    <div class="dash-panel panel-status">
+      <h4 class="panel-title">⚡ สถานะระบบ</h4>
+      <div class="status-list">
+        <div class="status-item"><span class="status-dot green"></span><span class="status-name">AIR2ROOT</span><span class="status-val">340 L/วัน</span></div>
+        <div class="status-item"><span class="status-dot green"></span><span class="status-name">RAIN BANK</span><span class="status-val">6,120 / 8,500 L</span></div>
+        <div class="status-item"><span class="status-dot green"></span><span class="status-name">AQUA-GUARD</span><span class="status-val">48/48 Active</span></div>
+        <div class="status-item"><span class="status-dot yellow"></span><span class="status-name">SPONGE CITY</span><span class="status-val">Moderate Load</span></div>
+        <div class="status-item"><span class="status-dot green"></span><span class="status-name">ECO-BRAIN AI</span><span class="status-val">Processing</span></div>
+        <div class="status-item"><span class="status-dot green"></span><span class="status-name">AQUA-PREDICT</span><span class="status-val">94% Confidence</span></div>
+      </div>
+    </div>
+
+    <div class="dash-panel panel-ai-insight">
+      <h4 class="panel-title">🧠 AI Insight</h4>
+      <div class="ai-insight-box" id="aiInsightBox">
+        <div class="ai-thinking"><div class="ai-pulse"></div><span>AI กำลังวิเคราะห์...</span></div>
+      </div>
+      <div class="ai-recommendations" id="aiRecommendations"></div>
+      <button class="btn-ai-refresh" id="refreshInsight">🔄 วิเคราะห์ใหม่</button>
+    </div>
+
+    <div class="dash-panel panel-pie">
+      <h4 class="panel-title">💧 แหล่งที่มาน้ำ</h4>
+      <canvas id="sourceChart" height="180"></canvas>
+    </div>
+
+  </div>
+</section>
+
+<!-- 6. SIMULATION -->
+<section id="simulation" class="section">
+  <div class="section-header">
+    <div class="section-tag">SECTION 06</div>
+    <h2 class="section-title">🎮 SIMULATION</h2>
+    <p class="section-desc">เลือกสถานการณ์เพื่อดูการตอบสนองของ HYDROLOOP</p>
+  </div>
+  <div class="sim-layout">
+    <div class="sim-scenarios">
+      <h4>สถานการณ์จำลอง</h4>
+      <div class="scenario-grid">
+        <button class="scenario-btn" data-scenario="heavy-rain"><div class="scenario-icon">⛈️</div><div><div class="scenario-name">Heavy Rain</div><div class="scenario-desc">ฝนตกหนัก</div></div></button>
+        <button class="scenario-btn" data-scenario="drought"><div class="scenario-icon">☀️</div><div><div class="scenario-name">Drought</div><div class="scenario-desc">ภัยแล้ง</div></div></button>
+        <button class="scenario-btn" data-scenario="low-soil"><div class="scenario-icon">🏜️</div><div><div class="scenario-name">Low Soil Moisture</div><div class="scenario-desc">ความชื้นดินต่ำ</div></div></button>
+        <button class="scenario-btn" data-scenario="full-tank"><div class="scenario-icon">🛢️</div><div><div class="scenario-name">Full Water Tank</div><div class="scenario-desc">ถังน้ำเต็ม</div></div></button>
+        <button class="scenario-btn" data-scenario="allocation"><div class="scenario-icon">⚖️</div><div><div class="scenario-name">Water Allocation</div><div class="scenario-desc">จัดสรรน้ำ</div></div></button>
+      </div>
+    </div>
+    <div class="sim-display">
+      <div class="sim-screen" id="simScreen">
+        <div class="sim-idle"><div class="sim-idle-icon">🌊</div><p>เลือกสถานการณ์เพื่อเริ่ม</p></div>
+      </div>
+      <div class="sim-metrics" id="simMetrics" style="display:none">
+        <div class="sim-metric-row"><span class="sim-metric-label">Water Level</span><div class="sim-bar"><div class="sim-bar-fill" id="simWaterBar"></div></div><span class="sim-metric-val" id="simWaterVal">-</span></div>
+        <div class="sim-metric-row"><span class="sim-metric-label">AI Response</span><div class="sim-bar"><div class="sim-bar-fill green" id="simAIBar"></div></div><span class="sim-metric-val" id="simAIVal">-</span></div>
+        <div class="sim-metric-row"><span class="sim-metric-label">Flood Risk</span><div class="sim-bar"><div class="sim-bar-fill red" id="simFloodBar"></div></div><span class="sim-metric-val" id="simFloodVal">-</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="allocation-panel" id="allocationPanel" style="display:none">
+    <h4>⚖️ ปรับสัดส่วนการจัดสรรน้ำ</h4>
+    <div class="allocation-sliders">
+      <div class="alloc-row"><label>🌳 พื้นที่สีเขียว</label><input type="range" min="0" max="60" value="30" class="alloc-slider" id="allocGreen"/><span class="alloc-pct" id="allocGreenPct">30%</span></div>
+      <div class="alloc-row"><label>🏢 อาคารสำนักงาน</label><input type="range" min="0" max="60" value="25" class="alloc-slider" id="allocOffice"/><span class="alloc-pct" id="allocOfficePct">25%</span></div>
+      <div class="alloc-row"><label>🏘️ ที่พักอาศัย</label><input type="range" min="0" max="60" value="20" class="alloc-slider" id="allocHome"/><span class="alloc-pct" id="allocHomePct">20%</span></div>
+      <div class="alloc-row"><label>🚿 ทำความสะอาด</label><input type="range" min="0" max="40" value="15" class="alloc-slider" id="allocClean"/><span class="alloc-pct" id="allocCleanPct">15%</span></div>
+      <div class="alloc-row"><label>🔥 ระบบดับเพลิง</label><input type="range" min="0" max="30" value="10" class="alloc-slider" id="allocFire"/><span class="alloc-pct" id="allocFirePct">10%</span></div>
+    </div>
+    <div class="alloc-total">รวม: <span class="alloc-total-num" id="allocTotal">100%</span></div>
+    <canvas id="allocChart" height="120"></canvas>
+  </div>
+</section>
+
+<!-- 7. ENVIRONMENTAL IMPACT -->
+<section id="impact" class="section section-dark">
+  <div class="section-header">
+    <div class="section-tag">SECTION 07</div>
+    <h2 class="section-title">🌍 ผลกระทบสิ่งแวดล้อม</h2>
+    <p class="section-desc">เปรียบเทียบก่อน/หลัง ใช้ HYDROLOOP</p>
+  </div>
+  <div class="impact-compare">
+    <div class="compare-toggle">
+      <button class="compare-btn active" id="showBefore">❌ ก่อนใช้ HYDROLOOP</button>
+      <button class="compare-btn" id="showAfter">✅ หลังใช้ HYDROLOOP</button>
+    </div>
+    <div class="impact-metrics-grid" id="impactGrid">
+      <div class="impact-card" data-before="2%" data-after="85%"><div class="impact-icon">♻️</div><div class="impact-metric-label">น้ำที่นำกลับมาใช้ใหม่</div><div class="impact-bar-wrap"><div class="impact-bar"><div class="impact-bar-fill" style="width:2%"></div></div><span class="impact-pct">2%</span></div></div>
+      <div class="impact-card" data-before="100%" data-after="40%"><div class="impact-icon">🚰</div><div class="impact-metric-label">การใช้น้ำประปา</div><div class="impact-bar-wrap"><div class="impact-bar"><div class="impact-bar-fill red" style="width:100%"></div></div><span class="impact-pct">100%</span></div></div>
+      <div class="impact-card" data-before="4%" data-after="100%"><div class="impact-icon">🌿</div><div class="impact-metric-label">พื้นที่สีเขียวที่ดูแลได้</div><div class="impact-bar-wrap"><div class="impact-bar"><div class="impact-bar-fill" style="width:4%"></div></div><span class="impact-pct">500 m²</span></div></div>
+      <div class="impact-card" data-before="90%" data-after="25%"><div class="impact-icon">🌊</div><div class="impact-metric-label">น้ำไหลบ่าในเมือง</div><div class="impact-bar-wrap"><div class="impact-bar"><div class="impact-bar-fill red" style="width:90%"></div></div><span class="impact-pct">90%</span></div></div>
+      <div class="impact-card" data-before="0%" data-after="100%"><div class="impact-icon">🪣</div><div class="impact-metric-label">น้ำที่รวบรวมได้ต่อวัน</div><div class="impact-bar-wrap"><div class="impact-bar"><div class="impact-bar-fill" style="width:0%"></div></div><span class="impact-pct">0 L</span></div></div>
+      <div class="impact-card" data-before="0%" data-after="94%"><div class="impact-icon">🧠</div><div class="impact-metric-label">ความแม่นยำการวางแผน</div><div class="impact-bar-wrap"><div class="impact-bar"><div class="impact-bar-fill" style="width:0%"></div></div><span class="impact-pct">0%</span></div></div>
+    </div>
+  </div>
+  <div class="impact-chart-wrap"><canvas id="impactChart" height="200"></canvas></div>
+</section>
+
+<!-- 8. SMART TECHNOLOGY -->
+<section id="technology" class="section">
+  <div class="section-header">
+    <div class="section-tag">SECTION 08</div>
+    <h2 class="section-title">💡 เทคโนโลยีที่ใช้</h2>
+    <p class="section-desc">10 เทคโนโลยีขับเคลื่อน HYDROLOOP 2040</p>
+  </div>
+  <div class="tech-grid">
+    <div class="tech-card" style="--accent:#a855f7"><div class="tech-icon">🤖</div><div class="tech-name">Artificial Intelligence</div><div class="tech-desc">วิเคราะห์รูปแบบการใช้น้ำ พยากรณ์ และสั่งจัดสรรอัตโนมัติ</div><div class="tech-tag">Core AI Engine</div></div>
+    <div class="tech-card" style="--accent:#06b6d4"><div class="tech-icon">📶</div><div class="tech-name">Internet of Things</div><div class="tech-desc">เครือข่ายเซนเซอร์ไร้สาย 48 จุด ส่งข้อมูลตลอด 24 ชั่วโมง</div><div class="tech-tag">48 Active Nodes</div></div>
+    <div class="tech-card" style="--accent:#f59e0b"><div class="tech-icon">🔌</div><div class="tech-name">ESP32 Microcontroller</div><div class="tech-desc">ประมวลผลข้อมูลเซนเซอร์ ควบคุมวาล์ว และเชื่อมต่อ WiFi</div><div class="tech-tag">Edge Computing</div></div>
+    <div class="tech-card" style="--accent:#22c55e"><div class="tech-icon">📏</div><div class="tech-name">Water Level Sensor</div><div class="tech-desc">ตรวจวัดระดับน้ำในถังและบ่อพักน้ำแบบต่อเนื่อง</div><div class="tech-tag">Ultrasonic / Float</div></div>
+    <div class="tech-card" style="--accent:#ef4444"><div class="tech-icon">🧪</div><div class="tech-name">pH Sensor</div><div class="tech-desc">ตรวจค่ากรด-ด่าง ให้น้ำที่นำมาใช้ปลอดภัย</div><div class="tech-tag">Range: 0–14</div></div>
+    <div class="tech-card" style="--accent:#8b5cf6"><div class="tech-icon">🌫️</div><div class="tech-name">Turbidity Sensor</div><div class="tech-desc">วัดความขุ่นใสของน้ำด้วยแสง Infrared ก่อนนำไปใช้</div><div class="tech-tag">NTU Measurement</div></div>
+    <div class="tech-card" style="--accent:#06b6d4"><div class="tech-icon">🌱</div><div class="tech-name">Soil Moisture Sensor</div><div class="tech-desc">วัดความชื้นดิน ให้ AI สั่งรดน้ำเฉพาะเมื่อพืชต้องการจริง</div><div class="tech-tag">Capacitive Type</div></div>
+    <div class="tech-card" style="--accent:#f97316"><div class="tech-icon">🌤️</div><div class="tech-name">Weather Forecasting</div><div class="tech-desc">เชื่อม API พยากรณ์อากาศล่วงหน้า 72 ชม. วางแผนใช้น้ำล่วงหน้า</div><div class="tech-tag">72hr Forecast</div></div>
+    <div class="tech-card" style="--accent:#a855f7"><div class="tech-icon">🌐</div><div class="tech-name">3D Digital Twin</div><div class="tech-desc">แบบจำลองเมืองดิจิทัล แสดงสถานะระบบแบบเรียลไทม์</div><div class="tech-tag">Real-time Sync</div></div>
+    <div class="tech-card" style="--accent:#22c55e"><div class="tech-icon">📊</div><div class="tech-name">Real-time Dashboard</div><div class="tech-desc">หน้าควบคุมรวมทุกระบบ กราฟแนวโน้ม แจ้งเตือนอัตโนมัติ</div><div class="tech-tag">ECO-BRAIN UI</div></div>
+  </div>
+</section>
+
+<!-- 9. FUTURE DEVELOPMENT -->
+<section id="future" class="section section-dark">
+  <div class="section-header">
+    <div class="section-tag">SECTION 09</div>
+    <h2 class="section-title">🚀 แผนพัฒนาอนาคต</h2>
+    <p class="section-desc">3 ระยะ — จาก Campus สู่ Smart City</p>
+  </div>
+  <div class="timeline">
+    <div class="timeline-line"></div>
+    <div class="timeline-item left">
+      <div class="timeline-dot phase1"></div>
+      <div class="timeline-content">
+        <div class="timeline-phase">PHASE 1 · 2024–2025</div>
+        <div class="timeline-title">🏫 LIVING CAMPUS</div>
+        <p>ทดลองในโรงเรียน/อาคารต้นแบบ ติดตั้ง AIR2ROOT + RAIN BANK + เซนเซอร์ 12 จุด</p>
+        <ul><li>✅ AIR2ROOT + RAIN BANK</li><li>✅ เซนเซอร์ IoT 12 จุด</li><li>🔄 AI Model แรก</li></ul>
+        <div class="timeline-status active">🟢 IN PROGRESS</div>
+      </div>
+    </div>
+    <div class="timeline-item right">
+      <div class="timeline-dot phase2"></div>
+      <div class="timeline-content">
+        <div class="timeline-phase">PHASE 2 · 2026–2028</div>
+        <div class="timeline-title">🏘️ COMMUNITY</div>
+        <p>ขยายสู่ชุมชนและอาคารสาธารณะ เชื่อมต่อ 10+ อาคาร รองรับ 500–2,000 คน</p>
+        <ul><li>🔵 10+ อาคาร</li><li>🔵 AI ระดับชุมชน</li><li>🔵 Mobile App</li></ul>
+        <div class="timeline-status planned">🔵 PLANNED</div>
+      </div>
+    </div>
+    <div class="timeline-item left">
+      <div class="timeline-dot phase3"></div>
+      <div class="timeline-content">
+        <div class="timeline-phase">PHASE 3 · 2029–2040</div>
+        <div class="timeline-title">🌆 SMART CITY</div>
+        <p>เชื่อมระบบน้ำทั่วทั้งเมืองอุดรธานี AI ควบคุมการจัดสรรน้ำระดับเมือง</p>
+        <ul><li>⚪ 1,000+ อาคาร</li><li>⚪ City Brain AI</li><li>⚪ Digital Twin ครบ</li></ul>
+        <div class="timeline-status future">⚪ FUTURE VISION</div>
+      </div>
+    </div>
+  </div>
+  <div class="future-vision">
+    <div class="vision-title">🌏 HYDROLOOP GLOBAL VISION 2040</div>
+    <p>ต่อยอดโมเดลจากอุดรธานีสู่เมืองทั่วโลก ลดการสูญเสียน้ำ 85% สร้างความมั่นคงด้านน้ำในยุค Climate Change</p>
+  </div>
+</section>
+
+<!-- 10. ABOUT -->
+<section id="about" class="section">
+  <div class="section-header">
+    <div class="section-tag">SECTION 10</div>
+    <h2 class="section-title">ℹ️ เกี่ยวกับ HYDROLOOP</h2>
+    <p class="section-desc">ที่มา วิสัยทัศน์ และเป้าหมายของโครงการ</p>
+  </div>
+  <div class="about-grid">
+    <div class="about-card">
+      <div class="about-icon">🌧️</div>
+      <h3>ที่มา</h3>
+      <p>เมืองสูญเสียน้ำฝน น้ำแอร์ และน้ำใต้ดินไปโดยเปล่าประโยชน์ ขณะที่สภาพอากาศแปรปรวนทำให้เกิดทั้งน้ำท่วมและภัยแล้งสลับกัน</p>
+    </div>
+    <div class="about-card">
+      <div class="about-icon">🎯</div>
+      <h3>วัตถุประสงค์</h3>
+      <ul>
+        <li>เปลี่ยนน้ำสูญเปล่าให้เป็นทรัพยากร</li>
+        <li>สร้างวงจรน้ำหมุนเวียนด้วย AI + IoT</li>
+        <li>ลดการพึ่งพาน้ำประปา</li>
+        <li>เปลี่ยนเมืองสู่การวางแผนเชิงรุก</li>
+      </ul>
+    </div>
+    <div class="about-card">
+      <div class="about-icon">💡</div>
+      <h3>จุดเด่น</h3>
+      <ul>
+        <li>เชื่อมต่อ 5 ระบบในระบบนิเวศเดียว</li>
+        <li>AI คาดการณ์ล่วงหน้า 72 ชั่วโมง</li>
+        <li>Digital Twin เรียลไทม์</li>
+        <li>ขยายได้ตั้งแต่ Campus → Smart City</li>
+      </ul>
+    </div>
+    <div class="about-card about-card-wide">
+      <div class="about-icon">🎯</div>
+      <h3>เป้าหมาย HYDROLOOP</h3>
+      <div class="goals-row">
+        <div class="goal-item"><div class="goal-num">85%</div><div class="goal-desc">ลดสูญเสียน้ำ</div></div>
+        <div class="goal-item"><div class="goal-num">60%</div><div class="goal-desc">ลดน้ำประปา</div></div>
+        <div class="goal-item"><div class="goal-num">12,000L</div><div class="goal-desc">เก็บน้ำ/วัน</div></div>
+        <div class="goal-item"><div class="goal-num">70%</div><div class="goal-desc">ลดน้ำท่วมขัง</div></div>
+        <div class="goal-item"><div class="goal-num">94%</div><div class="goal-desc">ความแม่นยำ AI</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  <div class="footer-logo"><span class="logo-drop">💧</span><span class="logo-text">HYDROLOOP</span><span class="logo-year">2040</span></div>
+  <p class="footer-tagline">AI-POWERED CIRCULAR WATER MANAGEMENT · UDON THANI</p>
+  <p class="footer-quote">"เปลี่ยนทุกหยดน้ำที่เคยสูญเปล่า ให้กลายเป็นพลังขับเคลื่อนเมืองแห่งอนาคต"</p>
+  <div class="footer-links">
+    <a href="#home">Home</a><a href="#city3d">3D City</a><a href="#ai-control">AI Control</a><a href="#simulation">Simulation</a><a href="#about">About</a>
+  </div>
+  <div class="footer-copy">© 2040 HYDROLOOP — THE INTELLIGENT WATER CYCLE OF TOMORROW</div>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
