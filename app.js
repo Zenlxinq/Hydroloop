@@ -1,6 +1,6 @@
 /**
  * HYDROLOOP 2040 — AI-POWERED CIRCULAR WATER MANAGEMENT CITY
- * Complete Interactive Application Logic
+ * Udon Thani 3D City Map Edition
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /* ═══════════════════════════════════════════════════════════════
-   1. NAVIGATION & SCROLL SPY
+   NAVBAR & SCROLL SPY
    ═══════════════════════════════════════════════════════════════ */
 function initNavbar() {
   const navbar = document.getElementById('navbar');
@@ -26,1146 +26,737 @@ function initNavbar() {
   const sections = document.querySelectorAll('section');
 
   window.addEventListener('scroll', () => {
-    if (window.scrollY > 40) {
-      navbar.classList.add('scrolled');
-    } else {
-      navbar.classList.remove('scrolled');
-    }
-
-    // Scroll spy
-    let current = '';
-    sections.forEach(section => {
-      const sectionTop = section.offsetTop - 120;
-      if (window.scrollY >= sectionTop) {
-        current = section.getAttribute('id');
-      }
-    });
-
-    links.forEach(link => {
-      link.classList.remove('active');
-      if (link.getAttribute('data-section') === current) {
-        link.classList.add('active');
-      }
-    });
+    navbar.classList.toggle('scrolled', window.scrollY > 40);
+    let cur = '';
+    sections.forEach(s => { if (window.scrollY >= s.offsetTop - 120) cur = s.id; });
+    links.forEach(l => l.classList.toggle('active', l.dataset.section === cur));
   });
 
-  if (navToggle) {
-    navToggle.addEventListener('click', () => {
-      navLinks.classList.toggle('open');
-    });
-  }
-
-  links.forEach(link => {
-    link.addEventListener('click', () => {
-      if (navLinks.classList.contains('open')) {
-        navLinks.classList.remove('open');
-      }
-    });
-  });
+  navToggle?.addEventListener('click', () => navLinks.classList.toggle('open'));
+  links.forEach(l => l.addEventListener('click', () => navLinks.classList.remove('open')));
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   2. HERO INTERACTIVE WATER CANVAS
+   HERO CANVAS — WATER PARTICLE NETWORK
    ═══════════════════════════════════════════════════════════════ */
 function initHeroCanvas() {
   const canvas = document.getElementById('heroCanvas');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
+  let W = canvas.width = window.innerWidth;
+  let H = canvas.height = window.innerHeight;
+  window.addEventListener('resize', () => { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; });
 
-  let width = canvas.width = window.innerWidth;
-  let height = canvas.height = window.innerHeight;
+  const N = Math.min(60, W > 768 ? 70 : 35);
+  const pts = Array.from({ length: N }, () => ({
+    x: Math.random() * W, y: Math.random() * H,
+    r: Math.random() * 2 + 1,
+    vx: (Math.random() - 0.5) * 0.6, vy: -Math.random() * 0.7 - 0.2,
+    a: Math.random() * 0.5 + 0.2, p: Math.random() * Math.PI * 2
+  }));
+  let mx = W / 2, my = H / 2;
+  window.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
 
-  window.addEventListener('resize', () => {
-    width = canvas.width = window.innerWidth;
-    height = canvas.height = window.innerHeight;
-  });
+  (function render() {
+    ctx.clearRect(0, 0, W, H);
+    const g = ctx.createRadialGradient(mx, my, 50, W / 2, H / 2, W);
+    g.addColorStop(0, 'rgba(0,212,255,0.07)');
+    g.addColorStop(1, 'rgba(7,13,23,0)');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
 
-  const particles = [];
-  const particleCount = Math.min(width > 768 ? 70 : 35, 80);
-
-  for (let i = 0; i < particleCount; i++) {
-    particles.push({
-      x: Math.random() * width,
-      y: Math.random() * height,
-      radius: Math.random() * 2.5 + 1,
-      speedX: (Math.random() - 0.5) * 0.6,
-      speedY: -Math.random() * 0.8 - 0.3,
-      alpha: Math.random() * 0.5 + 0.2,
-      pulse: Math.random() * Math.PI
-    });
-  }
-
-  let mouseX = width / 2;
-  let mouseY = height / 2;
-
-  window.addEventListener('mousemove', (e) => {
-    mouseX = e.clientX;
-    mouseY = e.clientY;
-  });
-
-  function render() {
-    ctx.clearRect(0, 0, width, height);
-
-    // Subtle water gradient backdrop
-    const grad = ctx.createRadialGradient(mouseX, mouseY, 50, width / 2, height / 2, width);
-    grad.addColorStop(0, 'rgba(0, 212, 255, 0.08)');
-    grad.addColorStop(1, 'rgba(7, 13, 23, 0)');
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, width, height);
-
-    // Particle nodes & connections
-    for (let i = 0; i < particles.length; i++) {
-      const p = particles[i];
-      p.x += p.speedX;
-      p.y += p.speedY;
-      p.pulse += 0.03;
-
-      if (p.y < -10) p.y = height + 10;
-      if (p.x < -10) p.x = width + 10;
-      if (p.x > width + 10) p.x = -10;
-
-      const currentRadius = p.radius + Math.sin(p.pulse) * 0.6;
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, Math.max(0.5, currentRadius), 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(0, 212, 255, ${p.alpha})`;
-      ctx.shadowBlur = 10;
-      ctx.shadowColor = '#00d4ff';
-      ctx.fill();
-      ctx.shadowBlur = 0;
-
-      // Draw faint connections
-      for (let j = i + 1; j < particles.length; j++) {
-        const p2 = particles[j];
-        const dist = Math.hypot(p.x - p2.x, p.y - p2.y);
-        if (dist < 110) {
-          ctx.beginPath();
-          ctx.moveTo(p.x, p.y);
-          ctx.lineTo(p2.x, p2.y);
-          ctx.strokeStyle = `rgba(0, 212, 255, ${0.15 * (1 - dist / 110)})`;
-          ctx.lineWidth = 0.8;
-          ctx.stroke();
-        }
+    pts.forEach((p, i) => {
+      p.x += p.vx; p.y += p.vy; p.p += 0.03;
+      if (p.y < -10) p.y = H + 10;
+      if (p.x < -10) p.x = W + 10;
+      if (p.x > W + 10) p.x = -10;
+      const r = Math.max(0.5, p.r + Math.sin(p.p) * 0.5);
+      ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(0,212,255,${p.a})`; ctx.shadowBlur = 8; ctx.shadowColor = '#00d4ff'; ctx.fill(); ctx.shadowBlur = 0;
+      for (let j = i + 1; j < pts.length; j++) {
+        const q = pts[j], d = Math.hypot(p.x - q.x, p.y - q.y);
+        if (d < 110) { ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y); ctx.strokeStyle = `rgba(0,212,255,${0.12 * (1 - d / 110)})`; ctx.lineWidth = 0.6; ctx.stroke(); }
       }
-    }
-
+    });
     requestAnimationFrame(render);
-  }
-  render();
+  })();
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   3. HERO STATS COUNTER ANIMATION
+   HERO STAT COUNTER
    ═══════════════════════════════════════════════════════════════ */
 function initHeroStats() {
-  const statNums = document.querySelectorAll('.stat-num');
-  let animated = false;
-
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting && !animated) {
-        animated = true;
-        statNums.forEach(el => {
-          const target = parseInt(el.getAttribute('data-target'), 10);
-          const suffix = el.getAttribute('data-suffix') || '';
-          const duration = 1800;
-          const start = performance.now();
-
-          function updateCount(now) {
-            const progress = Math.min((now - start) / duration, 1);
-            const easeOutQuad = 1 - (1 - progress) * (1 - progress);
-            const val = Math.floor(easeOutQuad * target);
-            el.textContent = val.toLocaleString() + suffix;
-            if (progress < 1) {
-              requestAnimationFrame(updateCount);
-            } else {
-              el.textContent = target.toLocaleString() + suffix;
-            }
-          }
-          requestAnimationFrame(updateCount);
-        });
-      }
+  const els = document.querySelectorAll('.stat-num');
+  let done = false;
+  new IntersectionObserver(entries => {
+    if (!entries[0].isIntersecting || done) return;
+    done = true;
+    els.forEach(el => {
+      const target = +el.dataset.target, sfx = el.dataset.suffix || '', t0 = performance.now();
+      (function tick(now) {
+        const p = Math.min((now - t0) / 1800, 1), ease = 1 - (1 - p) * (1 - p);
+        el.textContent = Math.floor(ease * target).toLocaleString() + sfx;
+        if (p < 1) requestAnimationFrame(tick); else el.textContent = target.toLocaleString() + sfx;
+      })(t0);
     });
-  }, { threshold: 0.3 });
-
-  const homeSection = document.getElementById('home');
-  if (homeSection) observer.observe(homeSection);
+  }, { threshold: 0.3 }).observe(document.getElementById('home'));
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   4. 3D CITY VISUALIZATION (THREE.JS)
+   3D CITY — UDON THANI MAP (THREE.JS)
+   Layout reference:
+     • หนองประจักษ์ศิลปาคม (Nong Prajak): center, oval lake
+     • ถนนมิตรภาพ (Mittraphap Rd): north-south axis (left side)
+     • ถนนโพศรี (Phosri Rd): east-west (bottom area)
+     • สนามบินอุดรธานี (Airport): top-left
+     • ศาลากลาง (City Hall): center-right of park
+     • โรงพยาบาลอุดรธานี (Hospital): center
+     • สถานีรถไฟ (Train Station): bottom-center
+     • Central Plaza / ห้างสรรพสินค้า: NE
+     • ตลาดหนองบัว (Nong Bua Market): south-west
    ═══════════════════════════════════════════════════════════════ */
 function init3DCity() {
   const container = document.querySelector('.city3d-container');
   const canvas = document.getElementById('cityCanvas');
   if (!container || !canvas || typeof THREE === 'undefined') return;
 
+  /* ── Scene setup ── */
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x060c18);
-  scene.fog = new THREE.FogExp2(0x060c18, 0.015);
+  scene.fog = new THREE.FogExp2(0x070e1c, 0.012);
 
-  const camera = new THREE.PerspectiveCamera(
-    45,
-    container.clientWidth / container.clientHeight,
-    0.1,
-    1000
-  );
-  const defaultCameraPos = new THREE.Vector3(42, 38, 55);
-  camera.position.copy(defaultCameraPos);
-
+  const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
   renderer.setSize(container.clientWidth, container.clientHeight);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.shadowMap.enabled = true;
 
-  // Lighting
-  const ambientLight = new THREE.AmbientLight(0x102038, 1.8);
-  scene.add(ambientLight);
+  /* ── Lights ── */
+  scene.add(new THREE.AmbientLight(0x0d1f36, 2.2));
+  const sun = new THREE.DirectionalLight(0x88ccff, 1.6);
+  sun.position.set(20, 60, 30); sun.castShadow = true; scene.add(sun);
+  scene.add(new THREE.HemisphereLight(0x00d4ff, 0x07111e, 0.6));
 
-  const dirLight = new THREE.DirectionalLight(0x00d4ff, 1.5);
-  dirLight.position.set(30, 50, 30);
-  dirLight.castShadow = true;
-  scene.add(dirLight);
+  /* ── Ground ── */
+  const groundGeo = new THREE.PlaneGeometry(160, 160);
+  const groundMat = new THREE.MeshLambertMaterial({ color: 0x060e1c });
+  const ground = new THREE.Mesh(groundGeo, groundMat);
+  ground.rotation.x = -Math.PI / 2; ground.position.y = -0.1;
+  scene.add(ground);
 
-  const hemiLight = new THREE.HemisphereLight(0x00d4ff, 0x07111e, 0.8);
-  scene.add(hemiLight);
+  /* ── City street grid (Udon Thani style) ── */
+  function addRoad(x1, z1, x2, z2, w) {
+    const dx = x2 - x1, dz = z2 - z1;
+    const len = Math.hypot(dx, dz);
+    const geo = new THREE.BoxGeometry(w, 0.05, len);
+    const mat = new THREE.MeshBasicMaterial({ color: 0x0e1f35 });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.set((x1 + x2) / 2, 0.01, (z1 + z2) / 2);
+    mesh.rotation.y = -Math.atan2(dz, dx) + Math.PI / 2;
+    scene.add(mesh);
+    // white dashes
+    const lineGeo = new THREE.BoxGeometry(0.4, 0.06, 1.5);
+    const lineMat = new THREE.MeshBasicMaterial({ color: 0x1a3550 });
+    const steps = Math.floor(len / 5);
+    for (let i = 0; i < steps; i++) {
+      const t = (i + 0.5) / steps;
+      const lx = x1 + dx * t, lz = z1 + dz * t;
+      const lm = new THREE.Mesh(lineGeo, lineMat);
+      lm.position.set(lx, 0.03, lz);
+      lm.rotation.y = -Math.atan2(dz, dx) + Math.PI / 2;
+      scene.add(lm);
+    }
+  }
 
-  // Groups for layer control
+  // Major roads — Udon Thani grid
+  // Mittraphap Rd (NS, left): x≈-28
+  addRoad(-28, -65, -28, 65, 3.5);
+  // Phosri Rd (EW, south): z≈25
+  addRoad(-65, 25, 65, 25, 3);
+  // Prajak Rd (EW, north of park): z≈-10
+  addRoad(-65, -10, 65, -10, 2.5);
+  // Udon-Dutsadi Rd (NS, right): x≈12
+  addRoad(12, -65, 12, 65, 2.5);
+  // Watnong Rd (diagonal): shortcut
+  addRoad(-28, -10, 12, 25, 2);
+  // Thesa Rd (EW center-south): z≈42
+  addRoad(-65, 42, 65, 42, 2);
+  // Airport road (NS far left): x≈-50
+  addRoad(-50, -65, -50, 20, 2);
+  // Cross streets
+  addRoad(-65, -32, 65, -32, 2);
+  addRoad(-65, 55, 65, 55, 2);
+  addRoad(35, -65, 35, 65, 2);
+  addRoad(-15, -65, -15, 65, 2);
+
+  /* ── Nong Prajak Reservoir (หนองประจักษ์) — central lake ── */
+  const lakeGeo = new THREE.EllipseGeometry(18, 11, 48);
+  const lakeMat = new THREE.MeshBasicMaterial({ color: 0x0d4f8c });
+  const lake = new THREE.Mesh(lakeGeo, lakeMat);
+  lake.rotation.x = -Math.PI / 2; lake.position.set(-8, 0.08, 7);
+  scene.add(lake);
+
+  // Lake glowing ring
+  const lakeRingGeo = new THREE.RingGeometry(18.5, 20, 48);
+  const lakeRingMat = new THREE.MeshBasicMaterial({ color: 0x005fa3, side: THREE.DoubleSide });
+  const lakeRing = new THREE.Mesh(lakeRingGeo, lakeRingMat);
+  lakeRing.rotation.x = -Math.PI / 2; lakeRing.position.set(-8, 0.1, 7);
+  scene.add(lakeRing);
+
+  // Water shimmer particles above lake
+  for (let i = 0; i < 30; i++) {
+    const a = Math.random() * Math.PI * 2, r = Math.random() * 15;
+    const sg = new THREE.SphereGeometry(0.3, 6, 6);
+    const sm = new THREE.MeshBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.5 });
+    const sp = new THREE.Mesh(sg, sm);
+    sp.position.set(-8 + Math.cos(a) * r * 1.5, 0.3 + Math.random() * 0.5, 7 + Math.sin(a) * r * 0.9);
+    scene.add(sp);
+  }
+
+  /* ── Park around lake ── */
+  const groupGreen = new THREE.Group();
+  const parkGeo = new THREE.EllipseGeometry(22, 15, 48);
+  const parkMat = new THREE.MeshLambertMaterial({ color: 0x0a3d1e });
+  const park = new THREE.Mesh(parkGeo, parkMat);
+  park.rotation.x = -Math.PI / 2; park.position.set(-8, 0.05, 7);
+  groupGreen.add(park);
+
+  // Trees around park
+  const treePositions = [];
+  for (let i = 0; i < 40; i++) {
+    const a = (i / 40) * Math.PI * 2;
+    const jx = (Math.random() - 0.5) * 6, jz = (Math.random() - 0.5) * 4;
+    treePositions.push([-8 + Math.cos(a) * 20 + jx, 7 + Math.sin(a) * 13 + jz]);
+  }
+  treePositions.forEach(([tx, tz]) => {
+    const h = 1.5 + Math.random() * 1.5;
+    const tg = new THREE.ConeGeometry(0.9, h, 6);
+    const tm = new THREE.MeshLambertMaterial({ color: 0x0f6b3a });
+    const t = new THREE.Mesh(tg, tm);
+    t.position.set(tx, h / 2, tz);
+    groupGreen.add(t);
+    // Trunk
+    const tr = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.2, 0.6, 5), new THREE.MeshBasicMaterial({ color: 0x3d2008 }));
+    tr.position.set(tx, 0.3, tz);
+    groupGreen.add(tr);
+  });
+  scene.add(groupGreen);
+
+  /* ── Layer groups ── */
   const groupBuildings = new THREE.Group();
   const groupWaterPipes = new THREE.Group();
   const groupSensors = new THREE.Group();
-  const groupGreen = new THREE.Group();
   scene.add(groupBuildings);
   scene.add(groupWaterPipes);
   scene.add(groupSensors);
-  scene.add(groupGreen);
 
-  // City Ground Grid
-  const gridHelper = new THREE.GridHelper(90, 45, 0x00d4ff, 0x11233d);
-  gridHelper.position.y = -0.1;
-  scene.add(gridHelper);
-
-  const groundGeo = new THREE.PlaneGeometry(120, 120);
-  const groundMat = new THREE.MeshBasicMaterial({ color: 0x040812 });
-  const groundMesh = new THREE.Mesh(groundGeo, groundMat);
-  groundMesh.rotation.x = -Math.PI / 2;
-  groundMesh.position.y = -0.15;
-  scene.add(groundMesh);
-
-  // Interactive Objects Array for Raycasting
-  const interactableObjects = [];
-
-  // Building metadata for the popups
-  const buildingData = [
-    {
-      id: 'air2root-hub',
-      name: 'AIR2ROOT Tower',
-      icon: '❄️',
-      desc: 'อาคารสำนักงานอัจฉริยะ ติดตั้งระบบรวบรวมน้ำควบแน่นจากระบบปรับอากาศส่วนกลาง ส่งเข้าท่อกรองความดันต่ำเพื่อกักเก็บใน RAIN BANK',
-      stats: { 'Condensate/Day': '340 Liters', 'HVAC Units': '84 Units', 'Status': 'Optimized', 'Saved Energy': '18%' },
-      pos: [-16, 0, -12],
-      size: [8, 26, 8],
-      color: 0x00d4ff
-    },
-    {
-      id: 'rain-bank-main',
-      name: 'RAIN BANK Deep Storage',
-      icon: '🌧️',
-      desc: 'ศูนย์กักเก็บน้ำฝนใต้ดินขนาด 8,500 ลิตร พร้อมระบบบำบัด 3 ชั้น (Bio-filtration, UV Sterilization, Sand Bed) เติมน้ำกลับเข้าสู่วงจรเมือง',
-      stats: { 'Total Capacity': '8,500 L', 'Current Level': '72%', 'Filtration Rate': '12 L/min', 'Quality Index': 'A+' },
-      pos: [14, 0, -14],
-      size: [12, 14, 12],
-      color: 0x3b82f6
-    },
-    {
-      id: 'eco-brain-tower',
-      name: 'ECO-BRAIN AI Tower',
-      icon: '🧠',
-      desc: 'ศูนย์กลางประมวลผล AI และ Digital Twin ของเมือง รวบรวมข้อมูลเซนเซอร์ 48 จุด เพื่อคำนวณและสั่งการจัดสรรน้ำแบบเรียลไทม์',
-      stats: { 'Active Nodes': '48 IoT', 'AI Confidence': '94%', 'Forecast Horizon': '72 Hrs', 'Latency': '12ms' },
-      pos: [0, 0, 0],
-      size: [10, 34, 10],
-      color: 0xa855f7
-    },
-    {
-      id: 'sponge-park',
-      name: 'SPONGE CITY Bio-Zone',
-      icon: '🌿',
-      desc: 'สวนรับน้ำและพื้นที่ชุ่มน้ำประดิษฐ์ ออกแบบด้วยดินและพืชพรรณดูดซับน้ำฝนสูง ลดน้ำท่วมขังได้ 70% และช่วยเติมความชุ่มชื้นแก่ดิน',
-      stats: { 'Permeable Area': '2,400 m²', 'Soil Moisture': '58%', 'Water Infiltrated': '4,200 L', 'Flora Index': 'Healthy' },
-      pos: [-14, 0, 16],
-      size: [16, 3, 16],
-      color: 0x10b981
-    },
-    {
-      id: 'aqua-guard-station',
-      name: 'AQUA-GUARD IoT Hub',
-      icon: '📡',
-      desc: 'สถานีตรวจสอบคุณภาพน้ำ ตรวจวัดค่า pH, ความขุ่น (Turbidity), อุณหภูมิ และระดับสารปนเปื้อนด้วย ESP32 ไมโครคอนโทรลเลอร์',
-      stats: { 'pH Level': '7.2', 'Turbidity': '3 NTU', 'Telemetry': 'LoRaWAN', 'Battery Reserve': '99%' },
-      pos: [18, 0, 14],
-      size: [7, 18, 7],
-      color: 0x14b8a6
-    }
-  ];
-
-  // Helper: create building material with glowing edges
-  function createBuildingMaterial(baseColor) {
-    return new THREE.MeshPhongMaterial({
-      color: 0x0a1628,
-      emissive: baseColor,
-      emissiveIntensity: 0.18,
-      specular: 0x00d4ff,
-      shininess: 40,
-      flatShading: true
-    });
-  }
-
-  // Build Interactive Landmark Buildings
-  buildingData.forEach(data => {
-    const geo = new THREE.BoxGeometry(data.size[0], data.size[1], data.size[2]);
-    const mat = createBuildingMaterial(data.color);
-    const mesh = new THREE.Mesh(geo, mat);
-    mesh.position.set(data.pos[0], data.size[1] / 2, data.pos[2]);
-    mesh.userData = data;
-
-    // Glowing wireframe outline
-    const wireGeo = new THREE.EdgesGeometry(geo);
-    const wireMat = new THREE.LineBasicMaterial({ color: data.color, linewidth: 1.5 });
-    const wireMesh = new THREE.LineSegments(wireGeo, wireMat);
-    mesh.add(wireMesh);
-
-    // Glowing roof cap
-    const capGeo = new THREE.BoxGeometry(data.size[0] * 0.9, 0.5, data.size[2] * 0.9);
-    const capMat = new THREE.MeshBasicMaterial({ color: data.color });
-    const capMesh = new THREE.Mesh(capGeo, capMat);
-    capMesh.position.y = data.size[1] / 2 + 0.3;
-    mesh.add(capMesh);
-
-    groupBuildings.add(mesh);
-    interactableObjects.push(mesh);
-  });
-
-  // Build Ambient City Skyscraper Blocks
-  const ambientCoords = [
-    [-28, 0, -28], [-28, 0, -10], [-28, 0, 10], [-28, 0, 26],
-    [-10, 0, -28], [10, 0, -28], [28, 0, -28], [28, 0, -10],
-    [28, 0, 10], [28, 0, 28], [10, 0, 28], [-10, 0, 28]
-  ];
-
-  ambientCoords.forEach((coord, i) => {
-    const h = 12 + Math.random() * 20;
-    const w = 5 + Math.random() * 3;
-    const d = 5 + Math.random() * 3;
+  /* ── Helper: glowing building ── */
+  function makeBuilding(w, h, d, color, emissive = null) {
     const geo = new THREE.BoxGeometry(w, h, d);
     const mat = new THREE.MeshPhongMaterial({
-      color: 0x0b1424,
-      emissive: 0x002244,
-      emissiveIntensity: 0.1,
+      color: 0x0a1628,
+      emissive: emissive || 0x001133,
+      emissiveIntensity: 0.15,
       flatShading: true
     });
     const mesh = new THREE.Mesh(geo, mat);
-    mesh.position.set(coord[0], h / 2, coord[2]);
-
-    const wire = new THREE.LineSegments(
+    const edges = new THREE.LineSegments(
       new THREE.EdgesGeometry(geo),
-      new THREE.LineBasicMaterial({ color: 0x173153 })
+      new THREE.LineBasicMaterial({ color: color || 0x1a3a5c })
     );
-    mesh.add(wire);
+    mesh.add(edges);
+    return mesh;
+  }
+
+  function addLandmark(data) {
+    const { pos, size, color, userData } = data;
+    const mesh = makeBuilding(size[0], size[1], size[2], color);
+    mesh.position.set(pos[0], size[1] / 2, pos[1]);
+    mesh.userData = userData;
+
+    // Glowing roof cap
+    const cap = new THREE.Mesh(
+      new THREE.BoxGeometry(size[0] * 0.85, 0.5, size[2] * 0.85),
+      new THREE.MeshBasicMaterial({ color })
+    );
+    cap.position.y = size[1] / 2 + 0.3; mesh.add(cap);
+
+    // Vertical beacon beam
+    const beam = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.1, 0.1, 6, 6),
+      new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.5 })
+    );
+    beam.position.y = size[1] / 2 + 3.5; mesh.add(beam);
+
+    groupBuildings.add(mesh);
+    return mesh;
+  }
+
+  /* ── UDON THANI LANDMARKS with HYDROLOOP systems ── */
+  const interactableObjects = [];
+
+  // 1. ศาลากลางจังหวัด (City Hall) — ECO-BRAIN AI Center
+  interactableObjects.push(addLandmark({
+    pos: [18, -5], size: [9, 28, 9], color: 0xa855f7,
+    userData: {
+      name: 'ศาลากลางจังหวัดอุดรธานี — ECO-BRAIN', icon: '🧠',
+      desc: 'ติดตั้ง ECO-BRAIN AI Center ศูนย์กลางประมวลผลข้อมูลน้ำทั้งจังหวัด ควบคุมระบบ HYDROLOOP ทั้งหมดจากจุดเดียว',
+      stats: { 'ระบบที่เชื่อมต่อ': '5 ระบบ', 'IoT Nodes': '48 จุด', 'AI Confidence': '94%', 'ความล่าช้า': '12ms' }
+    }
+  }));
+
+  // 2. โรงพยาบาลอุดรธานี (Hospital) — AIR2ROOT Hub
+  interactableObjects.push(addLandmark({
+    pos: [-2, -20], size: [10, 20, 10], color: 0x00d4ff,
+    userData: {
+      name: 'โรงพยาบาลอุดรธานี — AIR2ROOT', icon: '❄️',
+      desc: 'ระบบ AIR2ROOT รวบรวมน้ำควบแน่นจากเครื่องปรับอากาศทุกชั้น เฉลี่ย 340 ลิตรต่อวัน ส่งเข้าระบบหมุนเวียนน้ำสำหรับรดน้ำสวนและล้างพื้น',
+      stats: { 'น้ำควบแน่น/วัน': '340 ลิตร', 'เครื่องแอร์': '84 เครื่อง', 'ประหยัดพลังงาน': '18%', 'สถานะ': 'Online' }
+    }
+  }));
+
+  // 3. สนามบินอุดรธานี (Airport) — RAIN BANK Station
+  interactableObjects.push(addLandmark({
+    pos: [-50, -45], size: [22, 8, 12], color: 0x3b82f6,
+    userData: {
+      name: 'สนามบินอุดรธานี — RAIN BANK', icon: '🌧️',
+      desc: 'ระบบ RAIN BANK ขนาดใหญ่ รวบรวมน้ำฝนจากหลังคาอาคารผู้โดยสารขนาด 15,000 m² กรอง 3 ชั้น กักเก็บในถังใต้ดิน',
+      stats: { 'ความจุ': '15,000 ลิตร', 'ระดับน้ำ': '78%', 'อัตรากรอง': '25 L/min', 'คุณภาพน้ำ': 'A+' }
+    }
+  }));
+
+  // 4. Central Plaza (ห้างสรรพสินค้า) — SPONGE CITY Demo
+  interactableObjects.push(addLandmark({
+    pos: [35, -20], size: [14, 18, 14], color: 0x10b981,
+    userData: {
+      name: 'Central Plaza อุดรธานี — SPONGE CITY', icon: '🌿',
+      desc: 'ลานจอดรถซึมน้ำได้และสวนหย่อมรับน้ำโดยรอบอาคาร ลดน้ำท่วมขังในบริเวณห้างฯ ได้ 70% และส่งน้ำซึมเข้าสู่ชั้นดิน',
+      stats: { 'พื้นที่ซึมน้ำ': '3,200 m²', 'ความชื้นดิน': '62%', 'น้ำซึม/ฝน': '4,500 ลิตร', 'ป้องกันน้ำท่วม': '70%' }
+    }
+  }));
+
+  // 5. สถานีรถไฟอุดรธานี (Train Station) — AQUA-GUARD Hub
+  interactableObjects.push(addLandmark({
+    pos: [-5, 50], size: [14, 10, 8], color: 0x14b8a6,
+    userData: {
+      name: 'สถานีรถไฟอุดรธานี — AQUA-GUARD', icon: '📡',
+      desc: 'ศูนย์รวบรวมข้อมูลเซนเซอร์ IoT ครอบคลุมพื้นที่โดยรอบ 5 กม. ตรวจค่า pH ความขุ่น และระดับน้ำในท่อระบายน้ำสาธารณะ',
+      stats: { 'pH': '7.2', 'ความขุ่น': '3 NTU', 'รัศมีครอบคลุม': '5 กม.', 'สถานะ': 'Online' }
+    }
+  }));
+
+  /* ── Ambient city buildings (Udon Thani style: low-rise grid) ── */
+  const ambientBlocks = [
+    // North area
+    { pos: [-40, -50], w: 8, h: 12, d: 8 }, { pos: [-20, -50], w: 7, h: 9, d: 7 },
+    { pos: [0, -50], w: 9, h: 15, d: 9 },   { pos: [22, -50], w: 8, h: 10, d: 8 },
+    { pos: [42, -50], w: 10, h: 14, d: 10 },
+    // South area
+    { pos: [-42, 48], w: 7, h: 8, d: 7 },   { pos: [-22, 48], w: 8, h: 11, d: 8 },
+    { pos: [22, 48], w: 9, h: 12, d: 9 },   { pos: [42, 48], w: 7, h: 9, d: 7 },
+    // East area
+    { pos: [52, -40], w: 7, h: 10, d: 7 }, { pos: [52, -15], w: 6, h: 8, d: 6 },
+    { pos: [52, 10], w: 8, h: 13, d: 8 },   { pos: [52, 35], w: 7, h: 9, d: 7 },
+    // West area (smaller, residential)
+    { pos: [-55, -40], w: 6, h: 7, d: 6 }, { pos: [-55, -15], w: 7, h: 8, d: 7 },
+    { pos: [-55, 10], w: 6, h: 7, d: 6 },   { pos: [-55, 35], w: 7, h: 9, d: 7 },
+    // Mid blocks
+    { pos: [-35, -30], w: 6, h: 8, d: 6 },  { pos: [28, -35], w: 7, h: 10, d: 7 },
+    { pos: [28, 10], w: 8, h: 12, d: 8 },   { pos: [-35, 38], w: 7, h: 8, d: 7 },
+    { pos: [-15, 38], w: 6, h: 7, d: 6 },   { pos: [5, 38], w: 8, h: 10, d: 8 },
+    { pos: [-35, -50], w: 6, h: 7, d: 6 },  { pos: [5, -50], w: 7, h: 9, d: 7 },
+  ];
+
+  ambientBlocks.forEach(b => {
+    const mesh = makeBuilding(b.w, b.h, b.d, 0x152840);
+    mesh.position.set(b.pos[0], b.h / 2, b.pos[1]);
     groupBuildings.add(mesh);
   });
 
-  // Green Sponge Biome Zones
-  const greenGroundGeo = new THREE.CylinderGeometry(9, 9, 0.4, 24);
-  const greenGroundMat = new THREE.MeshLambertMaterial({ color: 0x064e3b });
-  const greenZone = new THREE.Mesh(greenGroundGeo, greenGroundMat);
-  greenZone.position.set(-14, 0.2, 16);
-  groupGreen.add(greenZone);
-
-  // Small trees on green zone
-  for (let t = 0; t < 14; t++) {
-    const treeGeo = new THREE.ConeGeometry(0.8, 2.2, 5);
-    const treeMat = new THREE.MeshBasicMaterial({ color: 0x10b981 });
-    const tree = new THREE.Mesh(treeGeo, treeMat);
-    const angle = Math.random() * Math.PI * 2;
-    const radius = Math.random() * 7;
-    tree.position.set(-14 + Math.cos(angle) * radius, 1.4, 16 + Math.sin(angle) * radius);
-    groupGreen.add(tree);
-  }
-
-  // IoT Sensor Tower Nodes
-  const sensorPositions = [
-    [-16, 26, -12], [14, 14, -14], [0, 34, 0], [-14, 4, 16], [18, 18, 14],
-    [-5, 8, -5], [5, 8, 5], [0, 6, -15], [0, 6, 15]
-  ];
-
-  const sensorMeshes = [];
-  sensorPositions.forEach(pos => {
-    const nodeGeo = new THREE.SphereGeometry(0.6, 12, 12);
-    const nodeMat = new THREE.MeshBasicMaterial({ color: 0x00d4ff });
-    const node = new THREE.Mesh(nodeGeo, nodeMat);
-    node.position.set(pos[0], pos[1] + 1.2, pos[2]);
-
-    // Ring beacon
-    const ringGeo = new THREE.RingGeometry(0.8, 1.1, 16);
-    const ringMat = new THREE.MeshBasicMaterial({ color: 0x00d4ff, side: THREE.DoubleSide });
-    const ring = new THREE.Mesh(ringGeo, ringMat);
-    ring.rotation.x = Math.PI / 2;
-    node.add(ring);
-
-    groupSensors.add(node);
-    sensorMeshes.push({ mesh: node, ring, baseScale: 1 });
+  /* ── Nong Bua Market (ตลาดหนองบัว) — small cluster ── */
+  [[-38, 30], [-34, 35], [-42, 35], [-38, 42]].forEach(([x, z]) => {
+    const mesh = makeBuilding(5, 5, 5, 0xf59e0b);
+    mesh.position.set(x, 2.5, z);
+    groupBuildings.add(mesh);
   });
 
-  // Animated Water Pipeline Routes (Tubes + Moving Flow Particles)
-  const pipeCurves = [
-    // Air2Root -> Rain Bank
+  /* ── IoT Sensor Nodes ── */
+  const sensorNodes = [];
+  const sensorSpots = [
+    [18, -5], [-2, -20], [-50, -45], [35, -20], [-5, 50],  // at landmarks
+    [-8, 7],             // lake center sensor
+    [-20, -30], [5, -30], [28, -50], [-40, 20],             // street sensors
+    [0, 25], [25, 25], [-25, 42]                            // zone sensors
+  ];
+
+  sensorSpots.forEach(([x, z]) => {
+    const pole = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.1, 0.1, 4, 6),
+      new THREE.MeshBasicMaterial({ color: 0x1a3a5c })
+    );
+    pole.position.set(x, 2, z);
+    groupSensors.add(pole);
+
+    const node = new THREE.Mesh(
+      new THREE.SphereGeometry(0.5, 10, 10),
+      new THREE.MeshBasicMaterial({ color: 0x00d4ff })
+    );
+    node.position.set(x, 4.3, z);
+    groupSensors.add(node);
+
+    const ring = new THREE.Mesh(
+      new THREE.RingGeometry(0.7, 1.0, 16),
+      new THREE.MeshBasicMaterial({ color: 0x00d4ff, side: THREE.DoubleSide, transparent: true, opacity: 0.6 })
+    );
+    ring.rotation.x = Math.PI / 2; ring.position.set(x, 4.3, z);
+    groupSensors.add(ring);
+    sensorNodes.push({ ring, node, ox: x, oz: z });
+  });
+
+  /* ── Water pipe network — following Udon Thani roads ── */
+  const pipeRoutes = [
+    // Hospital AIR2ROOT → lake
     new THREE.CatmullRomCurve3([
-      new THREE.Vector3(-16, 2, -12),
-      new THREE.Vector3(-8, 2, -13),
-      new THREE.Vector3(0, 3, -14),
-      new THREE.Vector3(14, 2, -14)
+      new THREE.Vector3(-2, 1.5, -20), new THREE.Vector3(-5, 1.5, -5), new THREE.Vector3(-8, 1.5, 7)
     ]),
-    // Rain Bank -> Eco-Brain
+    // Airport RAIN BANK → lake
     new THREE.CatmullRomCurve3([
-      new THREE.Vector3(14, 2, -14),
-      new THREE.Vector3(7, 2.5, -7),
-      new THREE.Vector3(0, 3, 0)
+      new THREE.Vector3(-50, 1.5, -45), new THREE.Vector3(-40, 1.5, -20), new THREE.Vector3(-20, 1.5, 0), new THREE.Vector3(-8, 1.5, 7)
     ]),
-    // Eco-Brain -> Sponge Park
+    // Lake → City Hall AI
     new THREE.CatmullRomCurve3([
-      new THREE.Vector3(0, 3, 0),
-      new THREE.Vector3(-7, 2, 8),
-      new THREE.Vector3(-14, 1.5, 16)
+      new THREE.Vector3(-8, 1.5, 7), new THREE.Vector3(5, 1.5, 0), new THREE.Vector3(18, 1.5, -5)
     ]),
-    // Sponge Park -> Aqua-Guard
+    // City Hall → Central Plaza
     new THREE.CatmullRomCurve3([
-      new THREE.Vector3(-14, 1.5, 16),
-      new THREE.Vector3(2, 2, 15),
-      new THREE.Vector3(18, 2, 14)
+      new THREE.Vector3(18, 1.5, -5), new THREE.Vector3(26, 1.5, -12), new THREE.Vector3(35, 1.5, -20)
+    ]),
+    // Central Plaza → Train Station (reuse)
+    new THREE.CatmullRomCurve3([
+      new THREE.Vector3(35, 1.5, -20), new THREE.Vector3(20, 1.5, 15), new THREE.Vector3(-5, 1.5, 50)
     ])
   ];
 
-  pipeCurves.forEach(curve => {
-    const tubeGeo = new THREE.TubeGeometry(curve, 32, 0.35, 8, false);
-    const tubeMat = new THREE.MeshBasicMaterial({
-      color: 0x00d4ff,
-      transparent: true,
-      opacity: 0.35,
-      wireframe: true
-    });
-    const tube = new THREE.Mesh(tubeGeo, tubeMat);
-    groupWaterPipes.add(tube);
+  pipeRoutes.forEach(curve => {
+    const tubeGeo = new THREE.TubeGeometry(curve, 40, 0.3, 7, false);
+    const tubeMesh = new THREE.Mesh(tubeGeo, new THREE.MeshBasicMaterial({
+      color: 0x00d4ff, transparent: true, opacity: 0.3, wireframe: false
+    }));
+    groupWaterPipes.add(tubeMesh);
   });
 
-  // Moving Water Drops along curves
-  const waterDrops = [];
-  pipeCurves.forEach(curve => {
-    for (let d = 0; d < 4; d++) {
-      const dropGeo = new THREE.SphereGeometry(0.5, 8, 8);
-      const dropMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
-      const drop = new THREE.Mesh(dropGeo, dropMat);
-      groupWaterPipes.add(drop);
-      waterDrops.push({
-        mesh: drop,
-        curve: curve,
-        progress: d * 0.25,
-        speed: 0.004 + Math.random() * 0.002
-      });
+  // Animated water drops
+  const drops = [];
+  pipeRoutes.forEach(curve => {
+    for (let d = 0; d < 5; d++) {
+      const geo = new THREE.SphereGeometry(0.45, 8, 8);
+      const mat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
+      const mesh = new THREE.Mesh(geo, mat);
+      groupWaterPipes.add(mesh);
+      drops.push({ mesh, curve, t: d * 0.2, speed: 0.004 + Math.random() * 0.002 });
     }
   });
 
-  // Interactive Camera Controls (Mouse Drag & Scroll Zoom)
-  let isDragging = false;
-  let previousMousePos = { x: 0, y: 0 };
-  let spherical = { radius: 78, theta: Math.PI / 4, phi: Math.PI / 3.2 };
+  /* ── Camera orbit control ── */
+  let spherical = { r: 110, theta: 0.9, phi: 0.65 };
+  let dragging = false, prev = { x: 0, y: 0 };
 
-  function updateCameraPosition() {
-    spherical.phi = Math.max(0.1, Math.min(Math.PI / 2.05, spherical.phi));
-    spherical.radius = Math.max(25, Math.min(130, spherical.radius));
-
-    camera.position.x = spherical.radius * Math.sin(spherical.phi) * Math.sin(spherical.theta);
-    camera.position.y = spherical.radius * Math.cos(spherical.phi);
-    camera.position.z = spherical.radius * Math.sin(spherical.phi) * Math.cos(spherical.theta);
-    camera.lookAt(0, 5, 0);
+  function updateCam() {
+    spherical.phi = Math.max(0.12, Math.min(1.4, spherical.phi));
+    spherical.r = Math.max(30, Math.min(180, spherical.r));
+    camera.position.set(
+      spherical.r * Math.sin(spherical.phi) * Math.sin(spherical.theta),
+      spherical.r * Math.cos(spherical.phi),
+      spherical.r * Math.sin(spherical.phi) * Math.cos(spherical.theta)
+    );
+    camera.lookAt(0, 3, 0);
   }
-  updateCameraPosition();
+  updateCam();
 
-  canvas.addEventListener('mousedown', (e) => {
-    isDragging = true;
-    previousMousePos = { x: e.clientX, y: e.clientY };
+  canvas.addEventListener('mousedown', e => { dragging = true; prev = { x: e.clientX, y: e.clientY }; });
+  window.addEventListener('mouseup', () => { dragging = false; });
+  canvas.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    spherical.theta -= (e.clientX - prev.x) * 0.007;
+    spherical.phi -= (e.clientY - prev.y) * 0.007;
+    updateCam(); prev = { x: e.clientX, y: e.clientY };
   });
+  canvas.addEventListener('wheel', e => { e.preventDefault(); spherical.r += e.deltaY * 0.06; updateCam(); }, { passive: false });
 
-  window.addEventListener('mouseup', () => { isDragging = false; });
-
-  canvas.addEventListener('mousemove', (e) => {
-    if (isDragging) {
-      const deltaX = e.clientX - previousMousePos.x;
-      const deltaY = e.clientY - previousMousePos.y;
-      spherical.theta -= deltaX * 0.007;
-      spherical.phi -= deltaY * 0.007;
-      updateCameraPosition();
-      previousMousePos = { x: e.clientX, y: e.clientY };
-    }
+  // Touch
+  let td0 = 0;
+  canvas.addEventListener('touchstart', e => {
+    if (e.touches.length === 1) { dragging = true; prev = { x: e.touches[0].clientX, y: e.touches[0].clientY }; }
+    else if (e.touches.length === 2) td0 = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
   });
-
-  canvas.addEventListener('wheel', (e) => {
-    e.preventDefault();
-    spherical.radius += e.deltaY * 0.05;
-    updateCameraPosition();
-  }, { passive: false });
-
-  // Touch controls for mobile
-  let touchStartDist = 0;
-  canvas.addEventListener('touchstart', (e) => {
-    if (e.touches.length === 1) {
-      isDragging = true;
-      previousMousePos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  canvas.addEventListener('touchmove', e => {
+    if (e.touches.length === 1 && dragging) {
+      spherical.theta -= (e.touches[0].clientX - prev.x) * 0.008;
+      spherical.phi -= (e.touches[0].clientY - prev.y) * 0.008;
+      updateCam(); prev = { x: e.touches[0].clientX, y: e.touches[0].clientY };
     } else if (e.touches.length === 2) {
-      touchStartDist = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY
-      );
+      const d = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+      spherical.r += (td0 - d) * 0.1; updateCam(); td0 = d;
     }
   });
+  canvas.addEventListener('touchend', () => { dragging = false; });
 
-  canvas.addEventListener('touchmove', (e) => {
-    if (e.touches.length === 1 && isDragging) {
-      const deltaX = e.touches[0].clientX - previousMousePos.x;
-      const deltaY = e.touches[0].clientY - previousMousePos.y;
-      spherical.theta -= deltaX * 0.008;
-      spherical.phi -= deltaY * 0.008;
-      updateCameraPosition();
-      previousMousePos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-    } else if (e.touches.length === 2) {
-      const dist = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY
-      );
-      const factor = (touchStartDist - dist) * 0.1;
-      spherical.radius += factor;
-      updateCameraPosition();
-      touchStartDist = dist;
-    }
-  });
-
-  canvas.addEventListener('touchend', () => { isDragging = false; });
-
-  // Raycasting for Building Click
+  /* ── Raycasting: click landmark ── */
   const raycaster = new THREE.Raycaster();
-  const mouse = new THREE.Vector2();
+  const mouse2d = new THREE.Vector2();
   const overlay = document.getElementById('cityOverlay');
-  const overlayIcon = document.getElementById('overlayIcon');
-  const overlayTitle = document.getElementById('overlayTitle');
-  const overlayDesc = document.getElementById('overlayDesc');
-  const overlayStats = document.getElementById('overlayStats');
-  const overlayClose = document.getElementById('overlayClose');
 
-  if (overlayClose) {
-    overlayClose.addEventListener('click', () => {
-      overlay.style.display = 'none';
-    });
-  }
-
-  canvas.addEventListener('click', (e) => {
+  canvas.addEventListener('click', e => {
     const rect = canvas.getBoundingClientRect();
-    mouse.x = ((e.clientX - rect.left) / canvas.clientWidth) * 2 - 1;
-    mouse.y = -((e.clientY - rect.top) / canvas.clientHeight) * 2 + 1;
-
-    raycaster.setFromCamera(mouse, camera);
-    const intersects = raycaster.intersectObjects(interactableObjects);
-
-    if (intersects.length > 0) {
-      const bData = intersects[0].object.userData;
-      if (bData && bData.name) {
-        overlayIcon.textContent = bData.icon;
-        overlayTitle.textContent = bData.name;
-        overlayDesc.textContent = bData.desc;
-
-        let statsHtml = '';
-        for (const [k, v] of Object.entries(bData.stats)) {
-          statsHtml += `<div><span style="color:var(--text-muted)">${k}</span><br/><strong style="color:var(--accent-cyan)">${v}</strong></div>`;
-        }
-        overlayStats.innerHTML = statsHtml;
-        overlay.style.display = 'block';
-
-        // Flash building
-        const origColor = intersects[0].object.material.emissive.getHex();
-        intersects[0].object.material.emissive.setHex(0x00ffff);
-        setTimeout(() => {
-          intersects[0].object.material.emissive.setHex(origColor);
-        }, 400);
-      }
+    mouse2d.x = ((e.clientX - rect.left) / canvas.clientWidth) * 2 - 1;
+    mouse2d.y = -((e.clientY - rect.top) / canvas.clientHeight) * 2 + 1;
+    raycaster.setFromCamera(mouse2d, camera);
+    const hits = raycaster.intersectObjects(interactableObjects);
+    if (hits.length > 0 && hits[0].object.userData?.name) {
+      const d = hits[0].object.userData;
+      document.getElementById('overlayIcon').textContent = d.icon;
+      document.getElementById('overlayTitle').textContent = d.name;
+      document.getElementById('overlayDesc').textContent = d.desc;
+      document.getElementById('overlayStats').innerHTML = Object.entries(d.stats)
+        .map(([k, v]) => `<div><span style="color:var(--text-muted);font-size:.78rem">${k}</span><br/><strong style="color:var(--accent-cyan)">${v}</strong></div>`).join('');
+      overlay.style.display = 'block';
+      // Flash
+      hits[0].object.material.emissive.setHex(0x00ffff);
+      setTimeout(() => hits[0].object.material.emissive.setHex(0x001133), 500);
     }
   });
 
-  // Layer toggles
-  setupLayerToggle('toggleBuildings', groupBuildings);
-  setupLayerToggle('toggleWater', groupWaterPipes);
-  setupLayerToggle('toggleSensors', groupSensors);
-  setupLayerToggle('toggleGreen', groupGreen);
+  document.getElementById('overlayClose')?.addEventListener('click', () => { overlay.style.display = 'none'; });
 
-  function setupLayerToggle(btnId, targetGroup) {
-    const btn = document.getElementById(btnId);
-    if (!btn) return;
-    btn.addEventListener('click', () => {
-      targetGroup.visible = !targetGroup.visible;
-      btn.classList.toggle('active', targetGroup.visible);
-    });
-  }
+  /* ── Layer toggles ── */
+  document.getElementById('toggleBuildings')?.addEventListener('click', e => { groupBuildings.visible = !groupBuildings.visible; e.currentTarget.classList.toggle('active', groupBuildings.visible); });
+  document.getElementById('toggleWater')?.addEventListener('click', e => { groupWaterPipes.visible = !groupWaterPipes.visible; e.currentTarget.classList.toggle('active', groupWaterPipes.visible); });
+  document.getElementById('toggleSensors')?.addEventListener('click', e => { groupSensors.visible = !groupSensors.visible; e.currentTarget.classList.toggle('active', groupSensors.visible); });
+  document.getElementById('toggleGreen')?.addEventListener('click', e => { groupGreen.visible = !groupGreen.visible; e.currentTarget.classList.toggle('active', groupGreen.visible); });
+  document.getElementById('resetCamera')?.addEventListener('click', () => { spherical = { r: 110, theta: 0.9, phi: 0.65 }; updateCam(); });
 
-  // Reset Camera View
-  const resetBtn = document.getElementById('resetCamera');
-  if (resetBtn) {
-    resetBtn.addEventListener('click', () => {
-      spherical = { radius: 78, theta: Math.PI / 4, phi: Math.PI / 3.2 };
-      updateCameraPosition();
-    });
-  }
-
-  // Handle Resize
+  /* ── Resize ── */
   window.addEventListener('resize', () => {
-    if (!container) return;
     camera.aspect = container.clientWidth / container.clientHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(container.clientWidth, container.clientHeight);
   });
 
-  // Animation Loop
-  let clock = new THREE.Clock();
-  function animate() {
+  /* ── Animate ── */
+  let t0 = performance.now();
+  (function animate() {
     requestAnimationFrame(animate);
-    const delta = clock.getDelta();
-    const elapsed = clock.getElapsedTime();
+    const elapsed = (performance.now() - t0) / 1000;
 
-    // Idle slow city rotation if not dragging
-    if (!isDragging) {
-      spherical.theta += 0.0006;
-      updateCameraPosition();
-    }
+    // Slow auto-rotation when idle
+    if (!dragging) { spherical.theta += 0.0005; updateCam(); }
 
-    // Move water flow drops
-    waterDrops.forEach(drop => {
-      drop.progress = (drop.progress + drop.speed) % 1;
-      const pt = drop.curve.getPointAt(drop.progress);
-      drop.mesh.position.copy(pt);
+    // Water drops along pipes
+    drops.forEach(d => {
+      d.t = (d.t + d.speed) % 1;
+      d.mesh.position.copy(d.curve.getPointAt(d.t));
     });
 
-    // Pulse IoT sensors
-    sensorMeshes.forEach((s, idx) => {
-      const scale = 1 + Math.sin(elapsed * 4 + idx) * 0.4;
-      s.ring.scale.set(scale, scale, 1);
+    // Sensor pulse
+    sensorNodes.forEach((s, i) => {
+      const sc = 1 + Math.sin(elapsed * 3 + i * 0.8) * 0.4;
+      s.ring.scale.set(sc, sc, 1);
+      s.node.material.opacity = 0.6 + Math.sin(elapsed * 2 + i) * 0.4;
     });
+
+    // Lake shimmer
+    lakeRing.material.opacity = 0.3 + Math.sin(elapsed * 1.5) * 0.2;
 
     renderer.render(scene, camera);
-  }
-  animate();
+  })();
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   5. AI CONTROL CENTER — GAUGES
+   DASHBOARD GAUGES
    ═══════════════════════════════════════════════════════════════ */
 function initDashboardGauges() {
-  drawGauge('gaugeWater', 72, 100, '#00d4ff');
-  drawGauge('gaugePH', 7.2, 14, '#10b981');
-  drawGauge('gaugeTurbidity', 3, 10, '#a855f7');
-  drawGauge('gaugeSoil', 58, 100, '#14b8a6');
+  [['gaugeWater', 72, 100, '#00d4ff'], ['gaugePH', 7.2, 14, '#10b981'],
+   ['gaugeTurbidity', 3, 10, '#a855f7'], ['gaugeSoil', 58, 100, '#14b8a6']]
+    .forEach(([id, v, mx, c]) => drawGauge(id, v, mx, c));
 }
 
-function drawGauge(canvasId, value, maxVal, color) {
-  const canvas = document.getElementById(canvasId);
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  const w = canvas.width;
-  const h = canvas.height;
-  const center = w / 2;
-  const radius = center - 16;
-  const startAngle = Math.PI * 0.75;
-  const endAngle = Math.PI * 2.25;
-  const pct = Math.min(value / maxVal, 1);
-  const currentAngle = startAngle + (endAngle - startAngle) * pct;
-
-  ctx.clearRect(0, 0, w, h);
-
-  // Background track
-  ctx.beginPath();
-  ctx.arc(center, center, radius, startAngle, endAngle);
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
-  ctx.lineWidth = 10;
-  ctx.lineCap = 'round';
-  ctx.stroke();
-
-  // Active value track
-  ctx.beginPath();
-  ctx.arc(center, center, radius, startAngle, currentAngle);
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 10;
-  ctx.lineCap = 'round';
-  ctx.shadowColor = color;
-  ctx.shadowBlur = 12;
-  ctx.stroke();
-  ctx.shadowBlur = 0;
+function drawGauge(id, value, max, color) {
+  const c = document.getElementById(id); if (!c) return;
+  const ctx = c.getContext('2d'), W = c.width, R = W / 2 - 16;
+  const s = Math.PI * 0.75, e = Math.PI * 2.25, cur = s + (e - s) * Math.min(value / max, 1);
+  ctx.clearRect(0, 0, W, W);
+  ctx.beginPath(); ctx.arc(W/2, W/2, R, s, e); ctx.strokeStyle = 'rgba(255,255,255,0.08)'; ctx.lineWidth = 10; ctx.lineCap = 'round'; ctx.stroke();
+  ctx.beginPath(); ctx.arc(W/2, W/2, R, s, cur); ctx.strokeStyle = color; ctx.shadowColor = color; ctx.shadowBlur = 14; ctx.lineWidth = 10; ctx.lineCap = 'round'; ctx.stroke(); ctx.shadowBlur = 0;
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   6. AI CONTROL CENTER — CHARTS
+   DASHBOARD CHARTS
    ═══════════════════════════════════════════════════════════════ */
-let collectionChartInstance = null;
-let sourceChartInstance = null;
-
 function initDashboardCharts() {
   if (typeof Chart === 'undefined') return;
+  Chart.defaults.color = '#94a3b8'; Chart.defaults.font.family = 'Inter';
 
-  // Chart styling defaults
-  Chart.defaults.color = '#94a3b8';
-  Chart.defaults.font.family = 'Inter';
-
-  // 1. Water Collection Trend
   const colCtx = document.getElementById('collectionChart');
-  if (colCtx) {
-    collectionChartInstance = new Chart(colCtx, {
-      type: 'line',
-      data: {
-        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-        datasets: [
-          {
-            label: 'Collected Water (L)',
-            data: [9200, 11400, 8500, 7800, 13200, 12000, 10800],
-            borderColor: '#00d4ff',
-            backgroundColor: 'rgba(0, 212, 255, 0.12)',
-            fill: true,
-            tension: 0.4,
-            borderWidth: 2,
-            pointBackgroundColor: '#00d4ff'
-          },
-          {
-            label: 'Recycled Usage (L)',
-            data: [8100, 9500, 8000, 7200, 10800, 11200, 9600],
-            borderColor: '#10b981',
-            backgroundColor: 'transparent',
-            tension: 0.4,
-            borderWidth: 2,
-            borderDash: [4, 4],
-            pointBackgroundColor: '#10b981'
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: { position: 'top', labels: { boxWidth: 12 } }
-        },
-        scales: {
-          x: { grid: { color: 'rgba(255, 255, 255, 0.05)' } },
-          y: { grid: { color: 'rgba(255, 255, 255, 0.05)' } }
-        }
-      }
-    });
-  }
+  if (colCtx) new Chart(colCtx, {
+    type: 'line',
+    data: {
+      labels: ['จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส', 'อา'],
+      datasets: [
+        { label: 'รวบรวมน้ำ (L)', data: [9200, 11400, 8500, 7800, 13200, 12000, 10800], borderColor: '#00d4ff', backgroundColor: 'rgba(0,212,255,0.1)', fill: true, tension: 0.4, borderWidth: 2, pointBackgroundColor: '#00d4ff' },
+        { label: 'นำกลับมาใช้ (L)', data: [8100, 9500, 8000, 7200, 10800, 11200, 9600], borderColor: '#10b981', backgroundColor: 'transparent', tension: 0.4, borderWidth: 2, borderDash: [4, 4], pointBackgroundColor: '#10b981' }
+      ]
+    },
+    options: { responsive: true, plugins: { legend: { position: 'top', labels: { boxWidth: 12 } } }, scales: { x: { grid: { color: 'rgba(255,255,255,0.05)' } }, y: { grid: { color: 'rgba(255,255,255,0.05)' } } } }
+  });
 
-  // 2. Water Source Distribution Pie
   const pieCtx = document.getElementById('sourceChart');
-  if (pieCtx) {
-    sourceChartInstance = new Chart(pieCtx, {
-      type: 'doughnut',
-      data: {
-        labels: ['RAIN BANK', 'AIR2ROOT', 'SPONGE CITY'],
-        datasets: [{
-          data: [48, 32, 20],
-          backgroundColor: ['#00d4ff', '#38bdf8', '#10b981'],
-          borderWidth: 0,
-          hoverOffset: 6
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: { position: 'bottom', labels: { boxWidth: 12 } }
-        },
-        cutout: '70%'
-      }
-    });
-  }
+  if (pieCtx) new Chart(pieCtx, {
+    type: 'doughnut',
+    data: { labels: ['RAIN BANK', 'AIR2ROOT', 'SPONGE CITY'], datasets: [{ data: [48, 32, 20], backgroundColor: ['#00d4ff', '#38bdf8', '#10b981'], borderWidth: 0, hoverOffset: 6 }] },
+    options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } }, cutout: '70%' }
+  });
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   7. AI INSIGHTS ENGINE
+   AI INSIGHTS
    ═══════════════════════════════════════════════════════════════ */
 function initAIInsights() {
-  const insightBox = document.getElementById('aiInsightBox');
-  const recommendationsDiv = document.getElementById('aiRecommendations');
-  const refreshBtn = document.getElementById('refreshInsight');
-
-  const insightsPool = [
+  const box = document.getElementById('aiInsightBox');
+  const recs = document.getElementById('aiRecommendations');
+  const pool = [
     {
-      text: "⚡ คาดการณ์ฝนตกหนักอีก 14 ชั่วโมงข้างหน้า (ความน่าจะเป็น 82%) แนะนำให้ปล่อยน้ำสำรองใน RAIN BANK ลง 18% สู่พื้นที่สีเขียวล่วงหน้า เพื่อเตรียมความจุรองรับน้ำฝนระลอกใหม่ ป้องกันน้ำล้นท่อระบายน้ำ",
-      recs: [
-        "เปิดวาล์ว V-03 ระบายน้ำรดน้ำสวนรับน้ำล่วงหน้า 350 ลิตร",
-        "ปรับโหมด SPONGE CITY สู่ Retention Buffer Mode",
-        "ส่งสัญญาณแจ้งเตือน IoT Nodes บริเวณจุดเสี่ยงลุ่มต่ำ"
-      ]
+      text: '⚡ คาดฝนตกหนักอีก 14 ชม. (82%) — แนะนำระบาย RAIN BANK ล่วงหน้า 18% เพื่อเตรียมรองรับน้ำฝนรอบใหม่',
+      actions: ['เปิดวาล์ว V-03 ระบาย 350 ลิตรไปรดสวนหนองประจักษ์', 'ตั้ง SPONGE CITY เป็นโหมด Retention Buffer', 'แจ้งเตือน IoT บริเวณพื้นที่ลุ่มต่ำทั่วอุดรธานี']
     },
     {
-      text: "☀️ ความชื้นในดินโซนตะวันออกลดลงสู่ 42% ขณะที่เครื่องปรับอากาศในอาคารสำนักงานปล่อยน้ำควบแน่นสูงสุด (AIR2ROOT +38%) แนะนำผันน้ำแอร์ไปรดน้ำแปลงเกษตรแนวตั้งทันทีโดยไม่ต้องดึงน้ำประปา",
-      recs: [
-        "ผันน้ำแอร์ 240 ลิตร เข้าสู่รากต้นไม้โดยตรง (Sub-irrigation)",
-        "ประหยัดน้ำประปาได้ 100% สำหรับรอบการรดน้ำช่วงบ่าย",
-        "เซนเซอร์ความชื้นดินคาดว่าจะฟื้นสู่ 62% ใน 2 ชั่วโมง"
-      ]
+      text: '☀️ ความชื้นดินในสวนหนองประจักษ์ลดเหลือ 42% — ผันน้ำควบแน่นจากแอร์โรงพยาบาล (AIR2ROOT) มารดน้ำทันที',
+      actions: ['ผันน้ำ AIR2ROOT 240 ลิตร → ระบบรากต้นไม้ (Sub-irrigation)', 'ประหยัดน้ำประปาได้ 100% สำหรับรอบบ่าย', 'เซนเซอร์คาดความชื้นฟื้นสู่ 60% ใน 2 ชั่วโมง']
     },
     {
-      text: "🔬 ค่าความขุ่น (Turbidity) ของน้ำฝนรอบล่าสุดอยู่ที่ 2.8 NTU คุณภาพดีเยี่ยมเหนือมาตรฐาน Eco-Urban Grade A แนะนำส่งต่อน้ำสำรองไปยังระบบชะล้างอาคารและระบบดับเพลิงสำรอง",
-      recs: [
-        "เติมถังดับเพลิงสำรอง Emergency Tank A ครบ 100%",
-        "ข้ามขั้นตอนการบำบัดรอง ประหยัดพลังงานปั๊มกรอง 14%",
-        "บันทึกค่าคุณภาพน้ำลงใน Digital Twin Data Ledger"
-      ]
+      text: '🔬 คุณภาพน้ำฝนล่าสุด 2.8 NTU — ระดับ A+ ข้ามขั้นตอนบำบัดรอง ประหยัดพลังงานปั๊ม 14%',
+      actions: ['เติมถังดับเพลิงสำรองสถานีรถไฟอุดรธานีครบ 100%', 'บันทึกคุณภาพน้ำลง Digital Twin', 'แจ้ง AI ปรับลดรอบกรองน้ำสัปดาห์หน้า']
     }
   ];
-
-  let currentIdx = 0;
-
-  function updateInsight() {
-    if (!insightBox) return;
-    const current = insightsPool[currentIdx];
-
-    insightBox.innerHTML = `
-      <div style="color:var(--text-main); font-weight:500;">
-        <span style="color:var(--accent-cyan); font-weight:700;">AQUA-PREDICT ANALYSIS:</span><br/>
-        ${current.text}
-      </div>
-    `;
-
-    if (recommendationsDiv) {
-      recommendationsDiv.innerHTML = current.recs.map(r => `
-        <div class="ai-rec-item">✓ ${r}</div>
-      `).join('');
-    }
-
-    currentIdx = (currentIdx + 1) % insightsPool.length;
+  let idx = 0;
+  function update() {
+    const c = pool[idx]; idx = (idx + 1) % pool.length;
+    if (box) box.innerHTML = `<div style="color:var(--text-main)"><span style="color:var(--accent-cyan);font-weight:700">AQUA-PREDICT:</span><br/>${c.text}</div>`;
+    if (recs) recs.innerHTML = c.actions.map(a => `<div class="ai-rec-item">✓ ${a}</div>`).join('');
   }
-
-  updateInsight();
-
-  if (refreshBtn) {
-    refreshBtn.addEventListener('click', () => {
-      insightBox.innerHTML = `
-        <div class="ai-thinking">
-          <div class="ai-pulse"></div>
-          <span>AI กำลังวิเคราะห์ข้อมูลเซนเซอร์แบบเรียลไทม์...</span>
-        </div>
-      `;
-      setTimeout(updateInsight, 700);
-    });
-  }
+  update();
+  document.getElementById('refreshInsight')?.addEventListener('click', () => {
+    if (box) box.innerHTML = `<div class="ai-thinking"><div class="ai-pulse"></div><span>AI กำลังวิเคราะห์...</span></div>`;
+    setTimeout(update, 700);
+  });
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   8. SIMULATION ENGINE
+   SIMULATION
    ═══════════════════════════════════════════════════════════════ */
 function initSimulation() {
-  const scenarioBtns = document.querySelectorAll('.scenario-btn');
-  const simScreen = document.getElementById('simScreen');
-  const simMetrics = document.getElementById('simMetrics');
-  const simWaterBar = document.getElementById('simWaterBar');
-  const simWaterVal = document.getElementById('simWaterVal');
-  const simAIBar = document.getElementById('simAIBar');
-  const simAIVal = document.getElementById('simAIVal');
-  const simFloodBar = document.getElementById('simFloodBar');
-  const simFloodVal = document.getElementById('simFloodVal');
-  const allocationPanel = document.getElementById('allocationPanel');
+  const screen = document.getElementById('simScreen');
+  const metrics = document.getElementById('simMetrics');
+  const allocPanel = document.getElementById('allocationPanel');
 
-  const scenarios = {
-    'heavy-rain': {
-      title: '⛈️ จำลองสถานการณ์ฝนตกหนัก (Heavy Rain)',
-      desc: 'ปริมาณฝนตกสะสม 85 มม./ชม. ระบบ Sponge City และ Rain Bank เริ่มทำงานเต็มกำลังเพื่อหน่วงน้ำและรองรับน้ำไหลบ่า',
-      actions: [
-        'ระบบ SPONGE CITY กักเก็บและซึมซับน้ำฝนลงสู่ชั้นดิน 4,200 L/ชม.',
-        'RAIN BANK เปิดวาล์วดักน้ำฝนหลังคาอาคาร 84 จุด พร้อมระบบกรองตะกอนอัตโนมัติ',
-        'AI สั่งการหน่วงน้ำ ลดอัตราน้ำท่วมขังบนผิวถนนลงได้ 88%'
-      ],
-      waterLevel: '95%',
-      waterWidth: '95%',
-      aiResp: 'Instant (0.4s)',
-      aiWidth: '98%',
-      floodRisk: '12% (Safe)',
-      floodWidth: '12%'
-    },
-    'drought': {
-      title: '☀️ จำลองสถานการณ์ภัยแล้ง (Drought)',
-      desc: 'ไม่มีฝนตกต่อเนื่อง 21 วัน อุณหภูมิเฉลี่ย 36°C ระบบเปลี่ยนสู่โหมดอนุรักษ์น้ำสูงสุดและดึงน้ำควบแน่นจากเครื่องปรับอากาศ',
-      actions: [
-        'AIR2ROOT รวบรวมน้ำควบแน่นจากแอร์ได้ 420 L/วัน ชดเชยการขาดแคลนฝน',
-        'AI สั่งลดการรดน้ำพื้นผิวทั่วไป และใช้ระบบน้ำหยดใต้ดินเฉพาะจุดวิกฤต',
-        'สำรองน้ำใน RAIN BANK เพียงพอสำหรับเมืองอีก 45 วัน โดยไม่ต้องพึ่งน้ำประปาภายนอก'
-      ],
-      waterLevel: '42%',
-      waterWidth: '42%',
-      aiResp: 'Eco-Mode (1.2s)',
-      aiWidth: '90%',
-      floodRisk: '0% (None)',
-      floodWidth: '2%'
-    },
-    'low-soil': {
-      title: '🏜️ ความชื้นในดินต่ำ (Low Soil Moisture)',
-      desc: 'เซนเซอร์ในสวนรับน้ำและพื้นที่สีเขียวตรวจพบความชื้นดินลดลงต่ำกว่า 30% พืชพรรณเริ่มส่งสัญญาณขาดน้ำ',
-      actions: [
-        'AQUA-GUARD ส่งสัญญาณเตือนความชื้นดินต่ำไปยัง ECO-BRAIN',
-        'AI วิเคราะห์สภาพอากาศ พบว่าไม่มีฝนใน 48 ชม. สั่งจ่ายน้ำสำรอง 650 ลิตรทันที',
-        'ความชื้นในดินกลับคืนสู่ระดับเหมาะสม 60% ภายใน 30 นาที'
-      ],
-      waterLevel: '68%',
-      waterWidth: '68%',
-      aiResp: 'Automated (0.8s)',
-      aiWidth: '95%',
-      floodRisk: '4% (Safe)',
-      floodWidth: '4%'
-    },
-    'full-tank': {
-      title: '🛢️ ถังเก็บน้ำใกล้เต็ม (Full Water Tank)',
-      desc: 'ระดับน้ำใน RAIN BANK แตะระดับ 92% ของความจุสูงสุด พร้อมข้อมูลพยากรณ์ว่าจะมีฝนตกเพิ่มในวันพรุ่งนี้',
-      actions: [
-        'AI คาดการณ์ล่วงหน้าและสั่งปล่อยน้ำส่วนเกิน 1,200 L ไปยังระบบเติมน้ำใต้ดิน (Aquifer Recharge)',
-        'แบ่งน้ำบางส่วนไปใช้ล้างถนน ทำความสะอาดพื้นที่สาธารณะ และเติมบ่อนันทนาการ',
-        'ถังมีพื้นที่ว่างเพียงพอรองรับน้ำฝนรอบใหม่ ไม่สูญเสียน้ำทิ้งอย่างไร้ประโยชน์'
-      ],
-      waterLevel: '98%',
-      waterWidth: '98%',
-      aiResp: 'Optimized (0.5s)',
-      aiWidth: '96%',
-      floodRisk: '18% (Controlled)',
-      floodWidth: '18%'
-    },
-    'allocation': {
-      title: '⚖️ ทดลองจัดสรรน้ำแบบกำหนดเอง (Water Allocation)',
-      desc: 'ทดลองปรับสัดส่วนการแจกจ่ายน้ำสำรองให้แก่ 5 ภาคส่วนหลักของเมือง และดูการจำลองผลตอบสนอง',
-      actions: [
-        'ใช้แถบเลื่อนด้านล่างเพื่อปรับสัดส่วนการจ่ายน้ำ',
-        'AI จะตรวจสอบสมดุลและคำนวณผลกระทบต่อความมั่นคงทางน้ำของเมืองแบบเรียลไทม์'
-      ],
-      waterLevel: '72%',
-      waterWidth: '72%',
-      aiResp: 'User-Driven',
-      aiWidth: '85%',
-      floodRisk: '8% (Normal)',
-      floodWidth: '8%'
-    }
+  const data = {
+    'heavy-rain': { title: '⛈️ ฝนตกหนัก', desc: 'ฝน 85 มม./ชม. ระบบ Sponge City + Rain Bank ทำงานเต็มกำลัง', actions: ['SPONGE CITY กักน้ำ 4,200 L/ชม.', 'RAIN BANK เปิดดักน้ำ 84 จุดทั่วอุดรธานี', 'AI ลดน้ำท่วมขังบนถนนสายหลักลง 88%'], water: ['95%','95%'], ai: ['98%','Instant 0.4s'], flood: ['12%','12% (ปลอดภัย)'] },
+    'drought': { title: '☀️ ภัยแล้ง', desc: 'ไม่มีฝน 21 วัน อุณหภูมิ 36°C ระบบเปลี่ยนสู่โหมดอนุรักษ์น้ำ', actions: ['AIR2ROOT รวบรวมน้ำแอร์ 420 L/วัน ชดเชยการขาดแคลน', 'AI จ่ายน้ำระบบหยดใต้ดินเฉพาะจุดวิกฤต', 'สำรองน้ำพอใช้อีก 45 วัน ไม่ต้องพึ่งน้ำประปา'], water: ['42%','42%'], ai: ['90%','Eco-Mode 1.2s'], flood: ['2%','0% (ไม่มี)'] },
+    'low-soil': { title: '🏜️ ความชื้นดินต่ำ', desc: 'เซนเซอร์ตรวจพบความชื้นดินต่ำกว่า 30% ในสวนหนองประจักษ์', actions: ['AQUA-GUARD ส่งสัญญาณเตือนไปยัง ECO-BRAIN', 'AI วิเคราะห์ไม่มีฝน 48 ชม. จ่ายน้ำสำรอง 650 L ทันที', 'ความชื้นดินฟื้นสู่ 60% ใน 30 นาที'], water: ['68%','68%'], ai: ['95%','Auto 0.8s'], flood: ['4%','4% (ปลอดภัย)'] },
+    'full-tank': { title: '🛢️ ถังน้ำเต็ม', desc: 'RAIN BANK ระดับน้ำ 92% พร้อมพยากรณ์ฝนตกพรุ่งนี้', actions: ['AI ผันน้ำส่วนเกิน 1,200 L ลงสู่ชั้นน้ำใต้ดิน', 'แบ่งน้ำล้างถนนและทำความสะอาดพื้นที่สาธารณะ', 'ถังว่างพอรองรับน้ำฝนรอบใหม่ ไม่มีน้ำสูญเสีย'], water: ['98%','98%'], ai: ['96%','Optimized 0.5s'], flood: ['18%','18% (ควบคุม)'] },
+    'allocation': { title: '⚖️ จัดสรรน้ำ', desc: 'ปรับสัดส่วนการจ่ายน้ำสำรองให้แต่ละภาคส่วน', actions: ['ใช้แถบเลื่อนด้านล่างปรับสัดส่วน', 'AI คำนวณผลกระทบและแจ้งเตือนหากไม่สมดุล'], water: ['72%','72%'], ai: ['85%','User-Driven'], flood: ['8%','8% (ปกติ)'] }
   };
 
-  scenarioBtns.forEach(btn => {
+  document.querySelectorAll('.scenario-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      scenarioBtns.forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.scenario-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
+      const sc = data[btn.dataset.scenario]; if (!sc) return;
 
-      const scKey = btn.getAttribute('data-scenario');
-      const data = scenarios[scKey];
-      if (!data) return;
-
-      // Update Screen
-      simScreen.innerHTML = `
-        <div class="sim-active-card">
-          <div class="sim-active-header">
-            <h3 class="sim-active-title">${data.title}</h3>
-          </div>
-          <p class="sim-active-desc">${data.desc}</p>
-          <div class="sim-actions-list">
-            <div class="sim-actions-title">🤖 AI & SYSTEM ACTIONS:</div>
-            <ul>
-              ${data.actions.map(act => `<li>▸ ${act}</li>`).join('')}
-            </ul>
-          </div>
+      screen.innerHTML = `<div class="sim-active-card">
+        <h3 class="sim-active-title">${sc.title}</h3>
+        <p class="sim-active-desc">${sc.desc}</p>
+        <div class="sim-actions-list">
+          <div class="sim-actions-title">🤖 AI ACTIONS:</div>
+          <ul>${sc.actions.map(a => `<li>▸ ${a}</li>`).join('')}</ul>
         </div>
-      `;
+      </div>`;
 
-      // Update Metrics
-      simMetrics.style.display = 'flex';
-      simWaterBar.style.width = data.waterWidth;
-      simWaterVal.textContent = data.waterLevel;
-      simAIBar.style.width = data.aiWidth;
-      simAIVal.textContent = data.aiResp;
-      simFloodBar.style.width = data.floodWidth;
-      simFloodVal.textContent = data.floodRisk;
+      metrics.style.display = 'flex';
+      document.getElementById('simWaterBar').style.width = sc.water[0];
+      document.getElementById('simWaterVal').textContent = sc.water[0];
+      document.getElementById('simAIBar').style.width = sc.ai[0];
+      document.getElementById('simAIVal').textContent = sc.ai[1];
+      document.getElementById('simFloodBar').style.width = sc.flood[0];
+      document.getElementById('simFloodVal').textContent = sc.flood[1];
 
-      // Show/hide Allocation Panel
-      if (scKey === 'allocation') {
-        allocationPanel.style.display = 'block';
-        initAllocationSliders();
-      } else {
-        allocationPanel.style.display = 'none';
-      }
+      allocPanel.style.display = btn.dataset.scenario === 'allocation' ? 'block' : 'none';
+      if (btn.dataset.scenario === 'allocation') initAllocationSliders();
     });
   });
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   9. WATER ALLOCATION SLIDERS & DYNAMIC CHART
+   ALLOCATION SLIDERS
    ═══════════════════════════════════════════════════════════════ */
-let allocChartInstance = null;
-
+let allocChart = null;
 function initAllocationSliders() {
-  const sliders = {
-    green: document.getElementById('allocGreen'),
-    office: document.getElementById('allocOffice'),
-    home: document.getElementById('allocHome'),
-    clean: document.getElementById('allocClean'),
-    fire: document.getElementById('allocFire')
-  };
-
-  const pcts = {
-    green: document.getElementById('allocGreenPct'),
-    office: document.getElementById('allocOfficePct'),
-    home: document.getElementById('allocHomePct'),
-    clean: document.getElementById('allocCleanPct'),
-    fire: document.getElementById('allocFirePct')
-  };
-
-  const totalNum = document.getElementById('allocTotal');
-
-  function updateAlloc() {
-    const vals = {
-      green: parseInt(sliders.green.value, 10),
-      office: parseInt(sliders.office.value, 10),
-      home: parseInt(sliders.home.value, 10),
-      clean: parseInt(sliders.clean.value, 10),
-      fire: parseInt(sliders.fire.value, 10)
-    };
-
-    pcts.green.textContent = vals.green + '%';
-    pcts.office.textContent = vals.office + '%';
-    pcts.home.textContent = vals.home + '%';
-    pcts.clean.textContent = vals.clean + '%';
-    pcts.fire.textContent = vals.fire + '%';
-
-    const sum = vals.green + vals.office + vals.home + vals.clean + vals.fire;
-    totalNum.textContent = sum + '%';
-
-    if (sum > 100) {
-      totalNum.classList.add('over');
-    } else {
-      totalNum.classList.remove('over');
-    }
-
-    if (allocChartInstance) {
-      allocChartInstance.data.datasets[0].data = [
-        vals.green, vals.office, vals.home, vals.clean, vals.fire
-      ];
-      allocChartInstance.update();
-    }
+  const ids = ['Green', 'Office', 'Home', 'Clean', 'Fire'];
+  function update() {
+    const vals = ids.map(id => parseInt(document.getElementById('alloc' + id)?.value || 0));
+    ids.forEach((id, i) => { const el = document.getElementById('alloc' + id + 'Pct'); if (el) el.textContent = vals[i] + '%'; });
+    const sum = vals.reduce((a, b) => a + b, 0);
+    const tot = document.getElementById('allocTotal');
+    if (tot) { tot.textContent = sum + '%'; tot.classList.toggle('over', sum > 100); }
+    if (allocChart) { allocChart.data.datasets[0].data = vals; allocChart.update(); }
   }
+  ids.forEach(id => document.getElementById('alloc' + id)?.addEventListener('input', update));
 
-  Object.values(sliders).forEach(s => {
-    if (s) s.addEventListener('input', updateAlloc);
-  });
-
-  // Init Mini Bar Chart for Allocation
-  const allocCanvas = document.getElementById('allocChart');
-  if (allocCanvas && !allocChartInstance && typeof Chart !== 'undefined') {
-    allocChartInstance = new Chart(allocCanvas, {
+  if (!allocChart && document.getElementById('allocChart') && typeof Chart !== 'undefined') {
+    allocChart = new Chart(document.getElementById('allocChart'), {
       type: 'bar',
-      data: {
-        labels: ['พื้นที่สีเขียว', 'อาคารสำนักงาน', 'ที่พักอาศัย', 'ทำความสะอาด', 'ระบบดับเพลิง'],
-        datasets: [{
-          label: 'สัดส่วนจัดสรรน้ำ (%)',
-          data: [30, 25, 20, 15, 10],
-          backgroundColor: ['#10b981', '#00d4ff', '#3b82f6', '#f59e0b', '#ef4444'],
-          borderRadius: 6
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: { legend: { display: false } },
-        scales: {
-          y: { max: 60, grid: { color: 'rgba(255,255,255,0.05)' } },
-          x: { grid: { display: false } }
-        }
-      }
+      data: { labels: ['สีเขียว', 'สำนักงาน', 'ที่พัก', 'ล้างทำความสะอาด', 'ดับเพลิง'], datasets: [{ label: '%', data: [30, 25, 20, 15, 10], backgroundColor: ['#10b981', '#00d4ff', '#3b82f6', '#f59e0b', '#ef4444'], borderRadius: 6 }] },
+      options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { max: 70, grid: { color: 'rgba(255,255,255,0.05)' } }, x: { grid: { display: false } } } }
     });
   }
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   10. ENVIRONMENTAL IMPACT (BEFORE / AFTER COMPARISON)
+   IMPACT SECTION
    ═══════════════════════════════════════════════════════════════ */
-let impactChartInstance = null;
-
+let impactChart = null;
 function initImpactSection() {
-  const showBeforeBtn = document.getElementById('showBefore');
-  const showAfterBtn = document.getElementById('showAfter');
-  const impactCards = document.querySelectorAll('.impact-card');
-
-  const beforeData = {
-    bars: ['2%', '100%', '4%', '90%', '0%', '0%'],
-    texts: ['2%', '100%', '500 m²', '90%', '0 L', '0%']
-  };
-
-  const afterData = {
-    bars: ['85%', '40%', '100%', '25%', '100%', '94%'],
-    texts: ['85%', '40%', '12,000 m²', '25%', '12,000 L', '94%']
-  };
+  const before = { bars: ['2%','100%','4%','90%','0%','0%'], texts: ['2%','100%','500 m²','90%','0 L','0%'] };
+  const after  = { bars: ['85%','40%','100%','25%','100%','94%'], texts: ['85%','40%','12,000 m²','25%','12,000 L','94%'] };
 
   function setMode(mode) {
     const isAfter = mode === 'after';
-    showBeforeBtn.classList.toggle('active', !isAfter);
-    showAfterBtn.classList.toggle('active', isAfter);
-
-    const sourceData = isAfter ? afterData : beforeData;
-
-    impactCards.forEach((card, i) => {
-      const barFill = card.querySelector('.impact-bar-fill');
-      const pctText = card.querySelector('.impact-pct');
-      if (barFill && pctText) {
-        barFill.style.width = sourceData.bars[i];
-        pctText.textContent = sourceData.texts[i];
-      }
+    document.getElementById('showBefore')?.classList.toggle('active', !isAfter);
+    document.getElementById('showAfter')?.classList.toggle('active', isAfter);
+    const src = isAfter ? after : before;
+    document.querySelectorAll('.impact-card').forEach((card, i) => {
+      const fill = card.querySelector('.impact-bar-fill'), pct = card.querySelector('.impact-pct');
+      if (fill) fill.style.width = src.bars[i]; if (pct) pct.textContent = src.texts[i];
     });
-
-    if (impactChartInstance) {
-      impactChartInstance.data.datasets[0].data = isAfter
-        ? [85, 40, 100, 25, 94]
-        : [2, 100, 4, 90, 0];
-      impactChartInstance.data.datasets[0].label = isAfter ? 'HYDROLOOP City (After)' : 'Traditional City (Before)';
-      impactChartInstance.data.datasets[0].backgroundColor = isAfter
-        ? 'rgba(0, 212, 255, 0.4)'
-        : 'rgba(239, 68, 68, 0.4)';
-      impactChartInstance.data.datasets[0].borderColor = isAfter ? '#00d4ff' : '#ef4444';
-      impactChartInstance.update();
+    if (impactChart) {
+      impactChart.data.datasets[0].data = isAfter ? [85, 40, 100, 25, 94] : [2, 100, 4, 90, 0];
+      impactChart.data.datasets[0].label = isAfter ? 'HYDROLOOP (หลัง)' : 'แบบเดิม (ก่อน)';
+      impactChart.data.datasets[0].backgroundColor = isAfter ? 'rgba(0,212,255,0.4)' : 'rgba(239,68,68,0.4)';
+      impactChart.data.datasets[0].borderColor = isAfter ? '#00d4ff' : '#ef4444';
+      impactChart.update();
     }
   }
 
-  if (showBeforeBtn) showBeforeBtn.addEventListener('click', () => setMode('before'));
-  if (showAfterBtn) showAfterBtn.addEventListener('click', () => setMode('after'));
+  document.getElementById('showBefore')?.addEventListener('click', () => setMode('before'));
+  document.getElementById('showAfter')?.addEventListener('click', () => setMode('after'));
 
-  // Impact Radar/Comparison Chart
-  const chartCanvas = document.getElementById('impactChart');
-  if (chartCanvas && typeof Chart !== 'undefined') {
-    impactChartInstance = new Chart(chartCanvas, {
+  const ctx = document.getElementById('impactChart');
+  if (ctx && typeof Chart !== 'undefined') {
+    impactChart = new Chart(ctx, {
       type: 'bar',
       data: {
-        labels: [
-          'น้ำนำกลับมาใช้ใหม่ (%)',
-          'การใช้น้ำประปา (%)',
-          'พื้นที่สีเขียว (เทียบ 100%)',
-          'น้ำไหลบ่าในเมือง (%)',
-          'ความแม่นยำ AI (%)'
-        ],
-        datasets: [{
-          label: 'Traditional City (Before)',
-          data: [2, 100, 4, 90, 0],
-          backgroundColor: 'rgba(239, 68, 68, 0.5)',
-          borderColor: '#ef4444',
-          borderWidth: 2,
-          borderRadius: 6
-        }]
+        labels: ['นำน้ำกลับใช้ (%)','น้ำประปา (%)','พื้นที่สีเขียว','น้ำไหลบ่า (%)','AI แม่นยำ (%)'],
+        datasets: [{ label: 'แบบเดิม (ก่อน)', data: [2, 100, 4, 90, 0], backgroundColor: 'rgba(239,68,68,0.5)', borderColor: '#ef4444', borderWidth: 2, borderRadius: 6 }]
       },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: { position: 'top' }
-        },
-        scales: {
-          y: { max: 100, grid: { color: 'rgba(255,255,255,0.05)' } },
-          x: { grid: { display: false } }
-        }
-      }
+      options: { responsive: true, plugins: { legend: { position: 'top' } }, scales: { y: { max: 100, grid: { color: 'rgba(255,255,255,0.05)' } }, x: { grid: { display: false } } } }
     });
   }
 }
